@@ -25,11 +25,10 @@ export const usersTable = pgTable(
   (table) => [unique("users_login_name_unique").on(table.loginName)],
 );
 
-export const userRefreshTokensTable = pgTable("user_refresh_tokens", {
-  tokenId: serial("token_id").primaryKey(),
-  ownerId: integer("owner_id").notNull(),
-  refreshToken: text("refresh_token").notNull(),
-  expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
+export const revokedTokensTable = pgTable("revoked_tokens", {
+  rejectionId: serial("rejection_id").primaryKey(),
+  exp: timestamp("jwt_exp", { mode: "string" }).notNull(),
+  jti: text("jwt_jti").notNull(),
 });
 
 export const worksTable = pgTable(
