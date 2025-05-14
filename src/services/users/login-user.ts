@@ -1,4 +1,3 @@
-import { insertUserRefreshToken } from "@/repositories/user-refresh-tokens/insert-user-refresh-token";
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
 import { hashPassword } from "@/utils/server/password";
 import {
@@ -35,24 +34,14 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
       return "token";
     }
 
-    const tokenInsertSuccess = await insertUserRefreshToken({
-      ownerId: selectedUser.userId,
+    return {
+      loginName: selectedUser.loginName,
+      displayName: selectedUser.displayName,
+      accessToken,
+      accessTokenExp,
       refreshToken,
-      expiresAt: new Date(refreshTokenExp).toISOString(),
-    });
-
-    if (tokenInsertSuccess) {
-      return {
-        loginName: selectedUser.loginName,
-        displayName: selectedUser.displayName,
-        accessToken,
-        accessTokenExp,
-        refreshToken,
-        refreshTokenExp,
-      };
-    }
-
-    return "unknown";
+      refreshTokenExp,
+    };
   } catch (error) {
     console.error(error);
     return "unknown";

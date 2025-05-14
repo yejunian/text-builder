@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
     };
 
