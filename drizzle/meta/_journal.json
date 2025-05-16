@@ -15,6 +15,13 @@
       "when": 1747235614127,
       "tag": "0001_mighty_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747409240082,
+      "tag": "0002_amused_crystal",
+      "breakpoints": true
     }
   ]
 }

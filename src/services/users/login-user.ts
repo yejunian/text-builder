@@ -1,9 +1,11 @@
+import { insertUserRefreshToken } from "@/repositories/user-tokens/insert-user-refresh-token";
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
 import { hashPassword } from "@/utils/server/password";
 import {
   createUserAccessToken,
   createUserRefreshToken,
   getExpirationTime,
+  getJwtId,
 } from "@/utils/server/user-token";
 
 export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
@@ -29,8 +31,19 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
 
     const accessTokenExp = getExpirationTime(accessToken);
     const refreshTokenExp = getExpirationTime(refreshToken);
+    const refreshTokenJti = getJwtId(refreshToken);
 
-    if (!accessTokenExp || !refreshTokenExp) {
+    if (!accessTokenExp || !refreshTokenExp || !refreshTokenJti) {
+      return "token";
+    }
+
+    const tokenInsertSuccess = await insertUserRefreshToken({
+      ownerId: selectedUser.userId,
+      exp: new Date(refreshTokenExp).toISOString(),
+      jti: refreshTokenJti,
+    });
+
+    if (!tokenInsertSuccess) {
       return "token";
     }
 

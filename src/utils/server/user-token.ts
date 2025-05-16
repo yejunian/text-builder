@@ -10,7 +10,7 @@ const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
 export function createJsonWebToken(
   privateClaims: JWTPrivateClaim | null,
   secret: string,
-  signOptions: jwt.SignOptions,
+  signOptions: jwt.SignOptions = {},
 ): string | null {
   if (!secret) {
     return null;
@@ -51,6 +51,16 @@ export function getExpirationTime(token: string): number | null {
   }
 
   return null;
+}
+
+export function getJwtId(token: string): string | null {
+  const payload = jwt.decode(token);
+
+  if (typeof payload === "string" || !payload?.jti) {
+    return null;
+  }
+
+  return payload.jti;
 }
 
 export type JWTPrivateClaim = {
