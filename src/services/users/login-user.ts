@@ -1,17 +1,8 @@
-import jwt from "jsonwebtoken";
-
-import { insertUserRefreshToken } from "@/repositories/user-tokens/insert-user-refresh-token";
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
 import { hashPassword } from "@/utils/server/password";
-import {
-  createUserAccessToken,
-  createUserRefreshToken,
-  isUserTokenPayload,
-  jwtExpToISOString,
-  UserTokenPair,
-  UserTokenPayload,
-} from "@/utils/server/user-token";
+import { UserTokenPair } from "@/utils/server/user-token";
 
+import { issueUserTokens } from "../user-tokens/issue-user-tokens";
 import { getUserTokens } from "./get-user-tokens";
 
 export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
@@ -35,44 +26,16 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
 
   try {
     const userId = selectedUser.userId;
+    const userTokens = await issueUserTokens(userId);
 
-    const accessToken = createUserAccessToken({ subject: userId });
-    const refreshToken = createUserRefreshToken({ subject: userId });
-
-    if (!accessToken || !refreshToken) {
-      return "token";
-    }
-
-    const atPayload = jwt.decode(accessToken, { json: true });
-    const rtPayload = jwt.decode(refreshToken, { json: true });
-
-    if (!isUserTokenPayload(atPayload) || !isUserTokenPayload(rtPayload)) {
-      return "token";
-    }
-
-    const tokenInsertSuccess = await insertUserRefreshToken({
-      ownerId: userId,
-      exp: jwtExpToISOString(rtPayload.exp),
-      jti: rtPayload.jti,
-    });
-
-    if (!tokenInsertSuccess) {
+    if (!userTokens) {
       return "token";
     }
 
     return {
       loginName: selectedUser.loginName,
       displayName: selectedUser.displayName,
-      tokens: {
-        access: {
-          token: accessToken,
-          payload: atPayload,
-        },
-        refresh: {
-          token: refreshToken,
-          payload: rtPayload,
-        },
-      },
+      tokens: userTokens,
     };
   } catch (error) {
     console.error(error);

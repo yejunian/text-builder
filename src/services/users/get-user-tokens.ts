@@ -1,11 +1,9 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";
 
-import {
-  jwtExpToDateValue,
-  UserTokenPair,
-  verifyUserTokens,
-} from "@/utils/server/user-token";
+import { jwtExpToDateValue, UserTokenPair } from "@/utils/server/user-token";
+
+import { verifyUserTokens } from "../user-tokens/verify-user-tokens";
 
 export async function getUserTokens(): Promise<UserTokenPair | null> {
   const cookieStore = await cookies();
