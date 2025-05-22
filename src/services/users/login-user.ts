@@ -1,14 +1,26 @@
+import jwt from "jsonwebtoken";
+
 import { insertUserRefreshToken } from "@/repositories/user-tokens/insert-user-refresh-token";
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
 import { hashPassword } from "@/utils/server/password";
 import {
   createUserAccessToken,
   createUserRefreshToken,
-  getExpirationTime,
-  getJwtId,
+  isUserTokenPayload,
+  jwtExpToISOString,
+  UserTokenPair,
+  UserTokenPayload,
 } from "@/utils/server/user-token";
 
+import { getUserTokens } from "./get-user-tokens";
+
 export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
+  const userTokens = await getUserTokens();
+
+  if (userTokens) {
+    return "logged_in";
+  }
+
   const selectedUser = await selectUserWithPassword(user.loginName);
 
   if (!selectedUser) {
@@ -22,25 +34,26 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
   }
 
   try {
-    const accessToken = createUserAccessToken({ subject: user.loginName });
-    const refreshToken = createUserRefreshToken({ subject: user.loginName });
+    const userId = selectedUser.userId;
+
+    const accessToken = createUserAccessToken({ subject: userId });
+    const refreshToken = createUserRefreshToken({ subject: userId });
 
     if (!accessToken || !refreshToken) {
       return "token";
     }
 
-    const accessTokenExp = getExpirationTime(accessToken);
-    const refreshTokenExp = getExpirationTime(refreshToken);
-    const refreshTokenJti = getJwtId(refreshToken);
+    const atPayload = jwt.decode(accessToken, { json: true });
+    const rtPayload = jwt.decode(refreshToken, { json: true });
 
-    if (!accessTokenExp || !refreshTokenExp || !refreshTokenJti) {
+    if (!isUserTokenPayload(atPayload) || !isUserTokenPayload(rtPayload)) {
       return "token";
     }
 
     const tokenInsertSuccess = await insertUserRefreshToken({
-      ownerId: selectedUser.userId,
-      exp: new Date(refreshTokenExp).toISOString(),
-      jti: refreshTokenJti,
+      ownerId: userId,
+      exp: jwtExpToISOString(rtPayload.exp),
+      jti: rtPayload.jti,
     });
 
     if (!tokenInsertSuccess) {
@@ -50,10 +63,16 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
     return {
       loginName: selectedUser.loginName,
       displayName: selectedUser.displayName,
-      accessToken,
-      accessTokenExp,
-      refreshToken,
-      refreshTokenExp,
+      tokens: {
+        access: {
+          token: accessToken,
+          payload: atPayload,
+        },
+        refresh: {
+          token: refreshToken,
+          payload: rtPayload,
+        },
+      },
     };
   } catch (error) {
     console.error(error);
@@ -71,20 +90,17 @@ export type UserLoginResult = UserLoginSuccess | UserLoginFailure;
 export type UserLoginSuccess = {
   loginName: string;
   displayName: string | null;
-  accessToken: string;
-  accessTokenExp: number;
-  refreshToken: string;
-  refreshTokenExp: number;
+  tokens: Omit<UserTokenPair, "reissued">;
 };
 
-export type UserLoginFailure = "password" | "token" | "unknown";
+export type UserLoginFailure = "logged_in" | "password" | "token" | "unknown";
 
 export function isUserLogin(obj: any): obj is UserLogin {
-  if (typeof obj.loginName !== "string") {
+  if (!obj?.loginName || typeof obj.loginName !== "string") {
     return false;
   }
 
-  if (typeof obj.password !== "string") {
+  if (!obj?.password || typeof obj.password !== "string") {
     return false;
   }
 

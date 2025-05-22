@@ -27,11 +27,13 @@ export async function POST(request: Request) {
 
     if (result === "ok") {
       return new Response(null, { status: status.CREATED });
-    } else if (result === "duplicated") {
-      return new Response(null, { status: status.BAD_REQUEST });
-    } else {
+    }
+
+    if (result.has("unknown")) {
       return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
     }
+
+    return new Response(null, { status: status.BAD_REQUEST });
   } catch (error) {
     console.error(error);
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });

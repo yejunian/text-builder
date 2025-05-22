@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import status from "http-status";
 
 import { isUserLogin, loginUser } from "@/services/users/login-user";
+import { jwtExpToDateValue } from "@/utils/server/user-token";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     return new Response(null, { status: status.BAD_REQUEST });
   }
 
-  if (!isUserLogin(body) || !body.loginName || !body.password) {
+  if (!isUserLogin(body)) {
     return new Response(null, { status: status.BAD_REQUEST });
   }
 
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
     }
 
     const cookieStore = await cookies();
+    const { tokens } = loginResult;
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
       secure: true,
@@ -52,19 +54,18 @@ export async function POST(request: Request) {
       path: "/",
     };
 
-    cookieStore.set("accessToken", loginResult.accessToken, {
+    cookieStore.set("accessToken", tokens.access.token, {
       ...defaultCookie,
-      expires: new Date(loginResult.accessTokenExp),
+      expires: new Date(jwtExpToDateValue(tokens.access.payload.exp)),
     });
-    cookieStore.set("refreshToken", loginResult.refreshToken, {
+    cookieStore.set("refreshToken", tokens.refresh.token, {
       ...defaultCookie,
-      expires: new Date(loginResult.refreshTokenExp),
+      expires: new Date(jwtExpToDateValue(tokens.refresh.payload.exp)),
     });
 
     const responseBody: LoginResponseBody = {
       loginName: loginResult.loginName,
       displayName: loginResult.displayName,
-      refreshTokenExp: loginResult.refreshTokenExp,
     };
 
     return Response.json(responseBody, { status: status.OK });
@@ -73,8 +74,7 @@ export async function POST(request: Request) {
   }
 }
 
-type LoginResponseBody = {
+export type LoginResponseBody = {
   loginName: string;
   displayName: string | null;
-  refreshTokenExp: number;
 };

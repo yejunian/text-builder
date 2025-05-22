@@ -3,20 +3,11 @@ import { DatabaseError } from "pg";
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
 
-export type UserInsertValue = Omit<
-  typeof usersTable.$inferInsert,
-  "userId" | "createdAt" | "deletedAt"
->;
-
-export type UserInsertResult = "ok" | "duplicated" | "unknown";
-
 export async function insertUser(
   userInsert: UserInsertValue,
 ): Promise<UserInsertResult> {
-  let result;
-
   try {
-    result = await db.insert(usersTable).values({ ...userInsert });
+    const result = await db.insert(usersTable).values({ ...userInsert });
 
     return result.rowCount === 1 ? "ok" : "unknown";
   } catch (error) {
@@ -30,3 +21,12 @@ export async function insertUser(
     return "unknown";
   }
 }
+
+export type UserInsertValue = Omit<
+  typeof usersTable.$inferInsert,
+  "userId" | "createdAt" | "deletedAt"
+>;
+
+export type UserInsertResult = UserInsertSuccess | UserInsertFailure;
+export type UserInsertSuccess = "ok";
+export type UserInsertFailure = "duplicated" | "unknown";

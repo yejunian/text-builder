@@ -1,21 +1,43 @@
-import { insertUser, UserInsertResult } from "@/repositories/users/insert-user";
+import {
+  insertUser,
+  UserInsertFailure,
+  UserInsertSuccess,
+} from "@/repositories/users/insert-user";
 import { createSalt, hashPassword } from "@/utils/server/password";
+
+const loginNameConstraint = /^[a-z0-9._-]{3,30}$/;
 
 export async function createUser(
   user: UserCreation,
-): Promise<UserInsertResult> {
+): Promise<UserCreationResult> {
+  const failureReason = new Set<UserCreationFailure>();
+
+  if (!loginNameConstraint.test(user.loginName)) {
+    failureReason.add("login_name");
+  }
+
+  if (user.displayName && user.displayName.length > 100) {
+    failureReason.add("display_name");
+  }
+
+  if (failureReason.size) {
+    return failureReason;
+  }
+
   try {
     const salt = createSalt();
 
-    return await insertUser({
+    const result = await insertUser({
       loginName: user.loginName,
       displayName: user.displayName || null,
       passwordHash: hashPassword(user.password, salt),
       passwordSalt: salt,
     });
+
+    return result === "ok" ? result : new Set<UserCreationFailure>([result]);
   } catch (error) {
     console.error(error);
-    return "unknown";
+    return new Set<UserCreationFailure>(["unknown"]);
   }
 }
 
@@ -44,3 +66,10 @@ export function isUserCreation(obj: any): obj is UserCreation {
 
   return true;
 }
+
+export type UserCreationResult = UserInsertSuccess | Set<UserCreationFailure>;
+
+export type UserCreationFailure =
+  | UserInsertFailure
+  | "login_name"
+  | "display_name";
