@@ -24,8 +24,11 @@ export async function POST(request: Request) {
     const loginResult = await loginUser(body);
 
     if (typeof loginResult === "string") {
-      // TODO: 실패 사유를 이렇게 관리하면 일부 상황 핸들링을 누락할 수 있음.
       switch (loginResult) {
+        case "logged_in":
+          // 이미 로그인함
+          return new Response(null, { status: status.BAD_REQUEST });
+
         case "password":
           // loginName, password 오류
           return new Response(null, { status: status.BAD_REQUEST });

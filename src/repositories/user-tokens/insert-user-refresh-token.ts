@@ -14,7 +14,4 @@ export async function insertUserRefreshToken(
   }
 }
 
-export type UserTokenInsertValue = Omit<
-  typeof userRefreshTokensTable.$inferInsert,
-  "tokenId"
->;
+export type UserTokenInsertValue = typeof userRefreshTokensTable.$inferInsert;

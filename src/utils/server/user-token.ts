@@ -1,6 +1,5 @@
-import { randomUUID } from "node:crypto";
-
 import jwt from "jsonwebtoken";
+import { v7 as uuid7 } from "uuid";
 
 import { JsonValue } from "@/types/json-object";
 
@@ -19,21 +18,21 @@ export function createJsonWebToken(
   return jwt.sign(privateClaims ?? {}, secret, {
     ...signOptions,
     issuer: "text-builder",
-    jwtid: randomUUID(),
+    jwtid: uuid7(),
   });
 }
 
 export function createUserAccessToken(payload: UserTokenClaim): string | null {
   return createJsonWebToken(null, accessTokenSecret, {
     expiresIn: "1h",
-    subject: payload.subject.toFixed(0),
+    subject: payload.subject,
   });
 }
 
 export function createUserRefreshToken(payload: UserTokenClaim): string | null {
   return createJsonWebToken(null, refreshTokenSecret, {
     expiresIn: "28d",
-    subject: payload.subject.toFixed(0),
+    subject: payload.subject,
   });
 }
 
@@ -80,5 +79,5 @@ export type JWTPrivateClaim = {
 };
 
 export type UserTokenClaim = {
-  subject: number;
+  subject: string;
 };

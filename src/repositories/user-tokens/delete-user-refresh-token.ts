@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { userRefreshTokensTable } from "@/db/schema";
 
 export async function deleteUserRefreshToken(
-  userId: number,
+  userId: string,
   jti: string,
 ): Promise<boolean> {
   try {
@@ -12,8 +12,8 @@ export async function deleteUserRefreshToken(
       .delete(userRefreshTokensTable)
       .where(
         and(
+          eq(userRefreshTokensTable.tokenId, jti),
           eq(userRefreshTokensTable.ownerId, userId),
-          eq(userRefreshTokensTable.jti, jti),
         ),
       );
 

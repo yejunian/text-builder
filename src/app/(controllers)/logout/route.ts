@@ -12,17 +12,8 @@ export async function GET(request: Request) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _userId: number;
-  try {
-    _userId = parseInt(userTokens.access.payload.sub, 10);
-  } catch (error) {
-    console.error("User ID in token parsing error");
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
-  }
-  const userId = _userId;
-
   const tokenDeleteSuccess = await deleteUserRefreshToken(
-    userId,
+    userTokens.refresh.payload.sub,
     userTokens.refresh.payload.jti,
   );
 

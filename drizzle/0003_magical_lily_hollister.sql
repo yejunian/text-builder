@@ -1,1 +1,0 @@
-ALTER TABLE "users" ALTER COLUMN "login_name" SET DATA TYPE varchar(30);

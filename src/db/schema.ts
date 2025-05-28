@@ -6,13 +6,14 @@ import {
   text,
   timestamp,
   unique,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable(
   "users",
   {
-    userId: serial("user_id").primaryKey(),
+    userId: uuid("user_id").primaryKey(),
     loginName: varchar("login_name", { length: 30 }).notNull(),
     displayName: varchar("display_name", { length: 100 }),
     passwordHash: varchar("password_hash", { length: 350 }).notNull(),
@@ -26,17 +27,16 @@ export const usersTable = pgTable(
 );
 
 export const userRefreshTokensTable = pgTable("user_refresh_tokens", {
-  tokenId: serial("token_id").primaryKey(),
-  ownerId: integer("owner_id").notNull(),
-  exp: timestamp("jwt_exp", { mode: "string" }).notNull(),
-  jti: text("jwt_jti").notNull(),
+  tokenId: uuid("token_id").primaryKey(),
+  ownerId: uuid("owner_id").notNull(),
+  exp: timestamp("token_exp", { mode: "string" }).notNull(),
 });
 
 export const worksTable = pgTable(
   "works",
   {
-    workId: serial("work_id").primaryKey(),
-    ownerId: integer("owner_id").notNull(),
+    workId: uuid("work_id").primaryKey(),
+    ownerId: uuid("owner_id").notNull(),
     slug: varchar({ length: 150 }).notNull(),
     title: varchar({ length: 150 }).notNull(),
     createdAt: timestamp("created_at", { mode: "string" })
@@ -56,8 +56,8 @@ export const worksTable = pgTable(
 export const workFieldsTable = pgTable(
   "work_fields",
   {
-    workFieldId: serial("work_field_id").primaryKey(),
-    parentId: integer("parent_id").notNull(),
+    workFieldId: uuid("work_field_id").primaryKey(),
+    parentId: uuid("parent_id").notNull(),
     displayOrder: integer("display_order").notNull(),
     fieldName: varchar("field_name", { length: 100 }).notNull(),
     isPublic: boolean("is_public").default(false).notNull(),

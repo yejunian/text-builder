@@ -10,7 +10,7 @@ import {
 } from "@/utils/server/user-token";
 
 export async function issueUserTokens(
-  userId: number,
+  userId: string,
 ): Promise<Omit<UserTokenPair, "reissued"> | null> {
   const accessToken = createUserAccessToken({ subject: userId });
   const refreshToken = createUserRefreshToken({ subject: userId });
@@ -27,9 +27,9 @@ export async function issueUserTokens(
   }
 
   const tokenInsertSuccess = await insertUserRefreshToken({
+    tokenId: rtPayload.jti,
     ownerId: userId,
     exp: jwtExpToISOString(rtPayload.exp),
-    jti: rtPayload.jti,
   });
 
   if (!tokenInsertSuccess) {

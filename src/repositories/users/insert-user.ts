@@ -1,4 +1,5 @@
 import { DatabaseError } from "pg";
+import { v7 as uuid7 } from "uuid";
 
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
@@ -7,7 +8,10 @@ export async function insertUser(
   userInsert: UserInsertValue,
 ): Promise<UserInsertResult> {
   try {
-    const result = await db.insert(usersTable).values({ ...userInsert });
+    const result = await db.insert(usersTable).values({
+      ...userInsert,
+      userId: uuid7(),
+    });
 
     return result.rowCount === 1 ? "ok" : "unknown";
   } catch (error) {

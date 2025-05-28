@@ -27,14 +27,6 @@ export async function verifyUserTokens(
     return "payload";
   }
 
-  let _userId: number;
-  try {
-    _userId = parseInt(atPayload.sub, 10);
-  } catch (error) {
-    return "payload";
-  }
-  const userId = _userId;
-
   const atResult = await verifySingleToken(accessToken, "access");
 
   if (atResult === "payload") {
@@ -42,7 +34,7 @@ export async function verifyUserTokens(
   }
 
   if (atResult === "expired") {
-    return await reissueUserTokens(userId, refreshToken, rtPayload.jti);
+    return await reissueUserTokens(atPayload.sub, refreshToken, rtPayload.jti);
   }
 
   // 성공(갱신 없음): 정상 토큰
@@ -60,7 +52,7 @@ export async function verifyUserTokens(
 }
 
 async function reissueUserTokens(
-  userId: number,
+  userId: string,
   refreshToken: string,
   refreshTokenJti: string,
 ): Promise<TokenVerificationResult> {

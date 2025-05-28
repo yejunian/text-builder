@@ -2,7 +2,6 @@ import status from "http-status";
 
 import { createUser, isUserCreation } from "@/services/users/create-user";
 
-// TODO: 4xx, 5xx 응답에 오류 내용을 담은 메시지 포함
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -20,9 +19,8 @@ export async function POST(request: Request) {
 
   try {
     const result = await createUser({
-      loginName: body.loginName,
+      ...body,
       displayName: body.displayName || null,
-      password: body.password,
     });
 
     if (result === "ok") {
