@@ -5,14 +5,16 @@ import {
 } from "@/repositories/users/insert-user";
 import { createSalt, hashPassword } from "@/utils/server/password";
 
-const loginNameConstraint = /^[a-z0-9._-]{3,30}$/;
-
 export async function createUser(
   user: UserCreation,
 ): Promise<UserCreationResult> {
   const failureReason = new Set<UserCreationFailure>();
 
-  if (!loginNameConstraint.test(user.loginName)) {
+  if (
+    user.loginName.length < 3 ||
+    user.loginName.length > 30 ||
+    /[^a-z0-9._-]|^\.|\.$|\.\.|^[._-]+$/.test(user.loginName)
+  ) {
     failureReason.add("login_name");
   }
 
