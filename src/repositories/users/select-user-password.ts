@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
@@ -16,7 +16,9 @@ export async function selectUserWithPassword(
         passwordSalt: usersTable.passwordSalt,
       })
       .from(usersTable)
-      .where(eq(usersTable.loginName, loginName));
+      .where(
+        and(eq(usersTable.loginName, loginName), isNull(usersTable.deletedAt)),
+      );
 
     return selectedPasswords[0] ?? null;
   } catch (error) {
