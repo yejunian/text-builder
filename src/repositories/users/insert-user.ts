@@ -3,7 +3,7 @@ import { v7 as uuid7 } from "uuid";
 
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
-import { DbInsertResult } from "@/types/db-result";
+import { DbInsertResult } from "@/types/server/db-result";
 
 export async function insertUser(
   userInsert: UserInsertValue,

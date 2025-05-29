@@ -1,11 +1,14 @@
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
+import { UserLoginReqBody } from "@/types/users";
 import { hashPassword } from "@/utils/server/password";
 import { UserTokenPair } from "@/utils/server/user-token";
 
 import { issueUserTokens } from "../user-tokens/issue-user-tokens";
 import { getUserTokens } from "./get-user-tokens";
 
-export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
+export async function loginUser(
+  user: UserLoginReqBody,
+): Promise<UserLoginResult> {
   const userTokens = await getUserTokens();
 
   if (userTokens) {
@@ -43,11 +46,6 @@ export async function loginUser(user: UserLogin): Promise<UserLoginResult> {
   }
 }
 
-export type UserLogin = {
-  loginName: string;
-  password: string;
-};
-
 export type UserLoginResult = UserLoginSuccess | UserLoginFailure;
 
 export type UserLoginSuccess = {
@@ -57,15 +55,3 @@ export type UserLoginSuccess = {
 };
 
 export type UserLoginFailure = "logged_in" | "password" | "token" | "unknown";
-
-export function isUserLogin(obj: any): obj is UserLogin {
-  if (!obj?.loginName || typeof obj.loginName !== "string") {
-    return false;
-  }
-
-  if (!obj?.password || typeof obj.password !== "string") {
-    return false;
-  }
-
-  return true;
-}

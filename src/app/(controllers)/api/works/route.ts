@@ -2,6 +2,7 @@ import status from "http-status";
 
 import { getUserTokens } from "@/services/users/get-user-tokens";
 import { createWork } from "@/services/works/create-work";
+import { isWorkCreationReqBody } from "@/types/works";
 
 // 계정이 소유한 작업 목록 조회
 export async function GET(request: Request) {
@@ -49,26 +50,4 @@ export async function POST(request: Request) {
   }
 
   return Response.json(result, { status: status.CREATED });
-}
-
-type WorkCreationReqBody = {
-  slug: string;
-  title: string;
-};
-
-function isWorkCreationReqBody(obj: any): obj is WorkCreationReqBody {
-  if (
-    !obj?.slug ||
-    typeof obj.slug !== "string" ||
-    obj.slug.length > 150 ||
-    /[^a-z0-9._-]|^\.|\.$|\.\.|^[._-]+$/.test(obj.slug)
-  ) {
-    return false;
-  }
-
-  if (!obj?.title || typeof obj.title !== "string") {
-    return false;
-  }
-
-  return true;
 }

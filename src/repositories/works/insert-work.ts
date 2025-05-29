@@ -3,7 +3,7 @@ import { v7 as uuid7 } from "uuid";
 
 import { db } from "@/db";
 import { worksTable } from "@/db/schema";
-import { DbInsertFailure } from "@/types/db-result";
+import { DbInsertFailure } from "@/types/server/db-result";
 
 export async function insertWork(
   workInsert: WorkInsertValue,

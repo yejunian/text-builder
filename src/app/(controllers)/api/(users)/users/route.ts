@@ -1,18 +1,19 @@
 import status from "http-status";
 
-import { createUser, isUserCreation } from "@/services/users/create-user";
+import { createUser } from "@/services/users/create-user";
+import { isUserCreationReqBody } from "@/types/users";
 
 export async function POST(request: Request) {
-  let body: unknown;
-
+  let _body: unknown;
   try {
-    body = await request.json();
+    _body = await request.json();
   } catch (error) {
     // JSON이 아닌 요청 본문
     return new Response(null, { status: status.BAD_REQUEST });
   }
+  const body = _body;
 
-  if (!isUserCreation(body) || !body.loginName || !body.password) {
+  if (!isUserCreationReqBody(body) || !body.loginName || !body.password) {
     // 필수 항목 누락
     return new Response(null, { status: status.BAD_REQUEST });
   }
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
       return new Response(null, { status: status.CREATED });
     }
 
-    if (result.has("unknown")) {
+    if (result === "unknown") {
       return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
     }
 

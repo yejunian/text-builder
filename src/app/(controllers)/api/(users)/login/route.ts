@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 
 import status from "http-status";
 
-import { isUserLogin, loginUser } from "@/services/users/login-user";
+import { loginUser } from "@/services/users/login-user";
+import { isUserLoginReqBody, UserLoginResBody } from "@/types/users";
 import { jwtExpToDateValue } from "@/utils/server/user-token";
 
 export async function POST(request: Request) {
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     return new Response(null, { status: status.BAD_REQUEST });
   }
 
-  if (!isUserLogin(body)) {
+  if (!isUserLoginReqBody(body)) {
     return new Response(null, { status: status.BAD_REQUEST });
   }
 
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
       expires: new Date(jwtExpToDateValue(tokens.refresh.payload.exp)),
     });
 
-    const responseBody: LoginResponseBody = {
+    const responseBody: UserLoginResBody = {
       loginName: loginResult.loginName,
       displayName: loginResult.displayName,
     };
@@ -76,8 +77,3 @@ export async function POST(request: Request) {
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
 }
-
-export type LoginResponseBody = {
-  loginName: string;
-  displayName: string | null;
-};

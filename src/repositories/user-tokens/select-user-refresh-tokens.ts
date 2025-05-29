@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { userRefreshTokensTable, usersTable } from "@/db/schema";
@@ -11,17 +11,18 @@ export async function selectUserRefreshToken(
     const selected = await db
       .select({
         ownerId: userRefreshTokensTable.ownerId,
-        jti: userRefreshTokensTable.jti,
+        tokenId: userRefreshTokensTable.tokenId,
       })
       .from(userRefreshTokensTable)
       .innerJoin(
         usersTable,
         and(
           eq(usersTable.loginName, loginName),
+          isNull(usersTable.deletedAt),
           eq(usersTable.userId, userRefreshTokensTable.ownerId),
         ),
       )
-      .where(eq(userRefreshTokensTable.jti, jwtid));
+      .where(eq(userRefreshTokensTable.tokenId, jwtid));
 
     return selected[0] || null;
   } catch (error) {
@@ -32,5 +33,5 @@ export async function selectUserRefreshToken(
 
 export type UserRefreshToken = Pick<
   typeof userRefreshTokensTable.$inferSelect,
-  "ownerId" | "jti"
+  "ownerId" | "tokenId"
 >;
