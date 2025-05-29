@@ -3,10 +3,11 @@ import { v7 as uuid7 } from "uuid";
 
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
+import { DbInsertResult } from "@/types/db-result";
 
 export async function insertUser(
   userInsert: UserInsertValue,
-): Promise<UserInsertResult> {
+): Promise<DbInsertResult> {
   try {
     const result = await db.insert(usersTable).values({
       ...userInsert,
@@ -30,7 +31,3 @@ export type UserInsertValue = Omit<
   typeof usersTable.$inferInsert,
   "userId" | "createdAt" | "deletedAt"
 >;
-
-export type UserInsertResult = UserInsertSuccess | UserInsertFailure;
-export type UserInsertSuccess = "ok";
-export type UserInsertFailure = "duplicated" | "unknown";

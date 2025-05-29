@@ -1,8 +1,5 @@
-import {
-  insertUser,
-  UserInsertFailure,
-  UserInsertSuccess,
-} from "@/repositories/users/insert-user";
+import { insertUser } from "@/repositories/users/insert-user";
+import { DbInsertFailure, DbInsertSuccess } from "@/types/db-result";
 import { createSalt, hashPassword } from "@/utils/server/password";
 
 export async function createUser(
@@ -88,9 +85,9 @@ export function isUserCreation(obj: any): obj is UserCreation {
   return true;
 }
 
-export type UserCreationResult = UserInsertSuccess | Set<UserCreationFailure>;
+export type UserCreationResult = DbInsertSuccess | Set<UserCreationFailure>;
 
 export type UserCreationFailure =
-  | UserInsertFailure
+  | DbInsertFailure
   | "login_name"
   | "display_name";
