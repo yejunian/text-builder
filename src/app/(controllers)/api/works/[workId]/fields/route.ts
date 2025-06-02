@@ -5,7 +5,7 @@ import { createWorkField } from "@/services/work-fields/create-work-fields";
 import { isWorkFieldCreationReqBody } from "@/types/work-fields";
 
 // 새 작업 필드 생성
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: PostContext) {
   const userTokens = await getUserTokens();
 
   if (!userTokens) {
@@ -21,12 +21,14 @@ export async function POST(request: Request) {
   }
   const body = _body;
 
+  const { workId } = await params;
+
   if (!isWorkFieldCreationReqBody(body)) {
     return new Response(null, { status: status.BAD_REQUEST });
   }
 
   const result = await createWorkField({
-    parentId: body.parentId,
+    parentId: workId,
     // order: body.order,
     name: body.name,
     type: body.type,
@@ -44,3 +46,9 @@ export async function POST(request: Request) {
 
   return Response.json(result, { status: status.CREATED });
 }
+
+type PostContext = {
+  params: Promise<{
+    workId: string;
+  }>;
+};

@@ -10,10 +10,6 @@ export type WorkFieldCreationReqBody = {
 export function isWorkFieldCreationReqBody(
   obj: any,
 ): obj is WorkFieldCreationReqBody {
-  if (!obj?.parentId || typeof obj.parentId !== "string") {
-    return false;
-  }
-
   if (!obj?.name || typeof obj.name !== "string") {
     return false;
   }
