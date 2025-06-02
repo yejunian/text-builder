@@ -1,7 +1,9 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
+import { DatabaseError } from "pg";
 
 import { db } from "@/db";
 import { usersTable, workFieldsTable, worksTable } from "@/db/schema";
+import { DbInsertFailure } from "@/types/server/db-result";
 import { WorkFieldModification } from "@/types/work-fields";
 
 export async function updateWorkField(
@@ -49,6 +51,12 @@ export async function updateWorkField(
       return "unknown";
     }
   } catch (error) {
+    if (error instanceof DatabaseError) {
+      if (error.code == "23505") {
+        return "duplicated";
+      }
+    }
+
     console.error(error);
     return "unknown";
   }
@@ -64,4 +72,7 @@ export type WorkFieldUpdateResult =
 
 type WorkFieldUpdateSuccess = "ok";
 
-type WorkFieldUpdateFailure = "not-found" | "too-many-updated" | "unknown";
+type WorkFieldUpdateFailure =
+  | "not-found"
+  | "too-many-updated"
+  | DbInsertFailure;
