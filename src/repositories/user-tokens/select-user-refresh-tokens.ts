@@ -4,8 +4,8 @@ import { db } from "@/db";
 import { userRefreshTokensTable, usersTable } from "@/db/schema";
 
 export async function selectUserRefreshToken(
-  loginName: string,
-  jwtid: string,
+  ownerId: string,
+  jwtId: string,
 ): Promise<UserRefreshToken | null> {
   try {
     const selected = await db
@@ -17,12 +17,12 @@ export async function selectUserRefreshToken(
       .innerJoin(
         usersTable,
         and(
-          eq(usersTable.loginName, loginName),
+          eq(usersTable.userId, ownerId),
+          eq(userRefreshTokensTable.ownerId, ownerId),
           isNull(usersTable.deletedAt),
-          eq(usersTable.userId, userRefreshTokensTable.ownerId),
         ),
       )
-      .where(eq(userRefreshTokensTable.tokenId, jwtid));
+      .where(eq(userRefreshTokensTable.tokenId, jwtId));
 
     return selected[0] || null;
   } catch (error) {

@@ -13,17 +13,22 @@ import {
 import { issueUserTokens } from "./issue-user-tokens";
 
 export async function verifyUserTokens(
-  accessToken: string,
+  accessToken: string | null,
   refreshToken: string,
 ): Promise<TokenVerificationResult> {
-  const atPayload = jwt.decode(accessToken, { json: true });
   const rtPayload = jwt.decode(refreshToken, { json: true });
 
-  if (
-    !isUserTokenPayload(atPayload) ||
-    !isUserTokenPayload(rtPayload) ||
-    atPayload.sub !== rtPayload.sub
-  ) {
+  if (!isUserTokenPayload(rtPayload)) {
+    return "payload";
+  }
+
+  if (!accessToken) {
+    return await reissueUserTokens(rtPayload.sub, refreshToken, rtPayload.jti);
+  }
+
+  const atPayload = jwt.decode(accessToken, { json: true });
+
+  if (!isUserTokenPayload(atPayload) || atPayload.sub !== rtPayload.sub) {
     return "payload";
   }
 
@@ -34,7 +39,7 @@ export async function verifyUserTokens(
   }
 
   if (atResult === "expired") {
-    return await reissueUserTokens(atPayload.sub, refreshToken, rtPayload.jti);
+    return await reissueUserTokens(rtPayload.sub, refreshToken, rtPayload.jti);
   }
 
   // 성공(갱신 없음): 정상 토큰
@@ -56,10 +61,10 @@ async function reissueUserTokens(
   refreshToken: string,
   refreshTokenJti: string,
 ): Promise<TokenVerificationResult> {
-  // 결과가 어떻든 기존 리프레시 토큰이 삭제됨
-  await deleteUserRefreshToken(userId, refreshTokenJti);
-
   const rtResult = await verifySingleToken(refreshToken, "refresh");
+
+  // 결과가 어떻든 기존 리프레시 토큰은 삭제됨
+  await deleteUserRefreshToken(userId, refreshTokenJti);
 
   if (typeof rtResult === "string") {
     return rtResult;

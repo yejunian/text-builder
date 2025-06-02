@@ -11,10 +11,9 @@ export async function getUserTokens(): Promise<UserTokenPair | null> {
   const accessToken = cookieStore.get("accessToken")?.value || null;
   const refreshToken = cookieStore.get("refreshToken")?.value || null;
 
-  const result =
-    accessToken && refreshToken
-      ? await verifyUserTokens(accessToken, refreshToken)
-      : "no_token";
+  const result = refreshToken
+    ? await verifyUserTokens(accessToken, refreshToken)
+    : "no_token";
 
   if (typeof result === "string") {
     cookieStore.delete("accessToken");
