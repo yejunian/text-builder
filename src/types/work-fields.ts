@@ -2,12 +2,11 @@ import { UpsertionTimestamps } from "./crud-timestamps";
 import { isWorkFieldTypeName, WorkFieldTypeName } from "./work-field-types";
 
 export type WorkFieldCreationReqBody = {
-  parentId: string;
-  // order?: number;
+  // order: number;
   name: string;
-  type?: WorkFieldTypeName;
-  value?: string;
-  isPublic?: boolean;
+  type: WorkFieldTypeName;
+  value: string;
+  isPublic: boolean;
 };
 
 export function isWorkFieldCreationReqBody(
@@ -17,20 +16,35 @@ export function isWorkFieldCreationReqBody(
     return false;
   }
 
-  if (obj?.type && !isWorkFieldTypeName(obj.type)) {
+  if (!obj?.type || !isWorkFieldTypeName(obj.type)) {
     return false;
   }
 
-  if (obj?.value && typeof obj.value !== "string") {
+  if (!obj?.value || typeof obj.value !== "string") {
     return false;
   }
 
-  if (obj?.isPublic && typeof obj.isPublic !== "boolean") {
+  if (typeof obj?.isPublic !== "boolean") {
     return false;
   }
 
   return true;
 }
+
+export type WorkFieldCreation = WorkFieldCreationReqBody & {
+  parentId: string;
+};
+
+export type WorkFieldModification = {
+  ownerId: string;
+  parentId: string;
+  workFieldId: string;
+  // order: number;
+  name: string;
+  type: WorkFieldTypeName;
+  value: string;
+  isPublic: boolean;
+};
 
 export type WorkField = UpsertionTimestamps & {
   workFieldId: string;

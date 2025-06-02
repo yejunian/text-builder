@@ -3,18 +3,18 @@ import {
   WorkFieldInsertResult,
 } from "@/repositories/work-fields/insert-work-field";
 import { workFieldTypeNameToId } from "@/types/work-field-types";
-import { WorkFieldCreationReqBody } from "@/types/work-fields";
+import { WorkFieldCreation } from "@/types/work-fields";
 
 export async function createWorkField(
-  workFieldCreation: WorkFieldCreationReqBody,
+  workFieldCreation: WorkFieldCreation,
 ): Promise<WorkFieldInsertResult> {
   const {
     parentId,
     // order: displayOrder,
     name: fieldName,
-    type: fieldTypeName = "text",
-    value: fieldValue = "",
-    isPublic = false,
+    type: fieldTypeName,
+    value: fieldValue,
+    isPublic,
   } = workFieldCreation;
 
   const fieldTypeValue =
