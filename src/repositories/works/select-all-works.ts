@@ -2,11 +2,13 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, worksTable } from "@/db/schema";
-import { WorkRead } from "@/types/works";
+import { AllWorksRead } from "@/types/works";
 
-export async function selectWork(
-  workRead: WorkRead,
-): Promise<WorkSelectResult> {
+import { WorkSelectSuccess } from "./select-work";
+
+export async function selectAllWorks(
+  worksRead: AllWorksRead,
+): Promise<AllWorksSelectResult> {
   try {
     const selected = await db
       .select({
@@ -21,26 +23,20 @@ export async function selectWork(
       .innerJoin(
         usersTable,
         and(
-          eq(worksTable.workId, workRead.workId),
-          eq(worksTable.ownerId, workRead.ownerId),
-          eq(usersTable.userId, workRead.ownerId),
+          eq(worksTable.ownerId, worksRead.ownerId),
+          eq(usersTable.userId, worksRead.ownerId),
           isNull(worksTable.deletedAt),
           isNull(usersTable.deletedAt),
         ),
       );
 
-    return selected[0] || "not-found";
+    return selected;
   } catch (error) {
     console.error(error);
     return "unknown";
   }
 }
 
-type WorkSelectResult = WorkSelectSuccess | WorkSelectFailure;
-
-export type WorkSelectSuccess = Pick<
-  typeof worksTable.$inferSelect,
-  "workId" | "ownerId" | "slug" | "title" | "createdAt" | "updatedAt"
->;
-
-export type WorkSelectFailure = "not-found" | "unknown";
+type AllWorksSelectResult = AllWorksSelectSuccess | AllWorksSelectFailure;
+type AllWorksSelectSuccess = WorkSelectSuccess[];
+export type AllWorksSelectFailure = "unknown";

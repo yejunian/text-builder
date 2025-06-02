@@ -2,6 +2,7 @@ import status from "http-status";
 
 import { getUserTokens } from "@/services/users/get-user-tokens";
 import { createWork } from "@/services/works/create-work";
+import { readAllWorks } from "@/services/works/read-all-works";
 import { isWorkCreationReqBody } from "@/types/works";
 
 // 계정이 소유한 작업 목록 조회
@@ -12,7 +13,15 @@ export async function GET(request: Request) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  // TODO: 계정이 소유한 작업 목록 조회
+  const result = await readAllWorks({
+    ownerId: userTokens.access.payload.sub,
+  });
+
+  if (typeof result === "string") {
+    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+  }
+
+  return Response.json(result, { status: status.OK });
 }
 
 // 계정 소유의 새 작업 생성

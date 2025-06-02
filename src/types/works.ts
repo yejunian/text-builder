@@ -34,6 +34,10 @@ export type WorkRead = {
   workId: string;
 };
 
+export type AllWorksRead = {
+  ownerId: string;
+};
+
 export type Work = WorkMetadata & {
   fields: WorkField[];
 };
