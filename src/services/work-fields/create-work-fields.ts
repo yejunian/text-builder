@@ -2,7 +2,8 @@ import {
   insertWorkField,
   WorkFieldInsertResult,
 } from "@/repositories/work-fields/insert-work-field";
-import { WorkFieldCreationReqBody, WorkFieldType } from "@/types/work-fields";
+import { workFieldTypeNameToId } from "@/types/work-field-types";
+import { WorkFieldCreationReqBody } from "@/types/work-fields";
 
 export async function createWorkField(
   workFieldCreation: WorkFieldCreationReqBody,
@@ -17,7 +18,7 @@ export async function createWorkField(
   } = workFieldCreation;
 
   const fieldTypeValue =
-    WorkFieldType[fieldTypeName === "unknown" ? "text" : fieldTypeName];
+    workFieldTypeNameToId[fieldTypeName === "unknown" ? "text" : fieldTypeName];
 
   return await insertWorkField({
     parentId,
