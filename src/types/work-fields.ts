@@ -1,3 +1,4 @@
+import { UpsertionTimestamps } from "./crud-timestamps";
 import { isWorkFieldTypeName, WorkFieldTypeName } from "./work-field-types";
 
 export type WorkFieldCreationReqBody = {
@@ -30,3 +31,12 @@ export function isWorkFieldCreationReqBody(
 
   return true;
 }
+
+export type WorkField = UpsertionTimestamps & {
+  workFieldId: string;
+  displayOrder: number;
+  fieldName: string;
+  isPublic: boolean;
+  fieldType: WorkFieldTypeName;
+  fieldValue: string;
+};

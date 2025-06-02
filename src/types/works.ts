@@ -1,5 +1,7 @@
 import { forbiddenNamePattern } from "@/utils/strings";
 
+import { WorkField } from "./work-fields";
+
 export type WorkCreationReqBody = {
   slug: string;
   title: string;
@@ -26,3 +28,21 @@ export function isWorkSlug(str: any): boolean {
     !forbiddenNamePattern.test(str)
   );
 }
+
+export type WorkRead = {
+  ownerId: string;
+  workId: string;
+};
+
+export type Work = WorkMetadata & {
+  fields: WorkField[];
+};
+
+export type WorkMetadata = {
+  workId: string;
+  ownerId: string;
+  slug: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+};
