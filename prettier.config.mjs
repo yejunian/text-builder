@@ -3,17 +3,11 @@
  * @type {import("prettier").Config}
  */
 const config = {
-  plugins: ["@ianvs/prettier-plugin-sort-imports"],
-
-  // @ianvs/prettier-plugin-sort-imports
+  // Plugin: @ianvs/prettier-plugin-sort-imports
   importOrder: [
-    "<TYPES>^(node:)",
-    "<TYPES>^next/",
-    "<TYPES>",
-    "<TYPES>^[./]",
-    "",
     "<BUILTIN_MODULES>",
     "",
+    "^react($|[:/])",
     "^next($|[:/])",
     "",
     "<THIRD_PARTY_MODULES>",
@@ -23,6 +17,15 @@ const config = {
     "^@/(.*)$",
     "",
     "^[./]",
+  ],
+  importOrderTypeScriptVersion: "5.0.0",
+
+  // Plugin: prettier-plugin-tailwindcss
+  tailwindFunctions: ["clsx", "cn", "cva", "twJoin", "twMerge"],
+
+  plugins: [
+    "@ianvs/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss", // MUST come last
   ],
 };
 
