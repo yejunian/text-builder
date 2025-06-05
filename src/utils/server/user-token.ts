@@ -1,39 +1,42 @@
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { v7 as uuid7 } from "uuid";
 
-import { JsonValue } from "@/types/json-object";
+export const accessTokenSecret = new TextEncoder().encode(
+  process.env.ACCESS_TOKEN_SECRET,
+);
+export const refreshTokenSecret = new TextEncoder().encode(
+  process.env.REFRESH_TOKEN_SECRET,
+);
 
-export const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET!;
-export const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
-
-export function createJsonWebToken(
-  privateClaims: JWTPrivateClaim | null,
-  secret: string,
-  signOptions: jwt.SignOptions = {},
-): string | null {
-  if (!secret) {
+export async function createJsonWebToken(
+  secret: Uint8Array,
+  subject: string,
+  expirationTime: number | string | Date,
+): Promise<string | null> {
+  if (!secret.length) {
     return null;
   }
 
-  return jwt.sign(privateClaims ?? {}, secret, {
-    ...signOptions,
-    issuer: "text-builder",
-    jwtid: uuid7(),
-  });
+  return await new SignJWT()
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuer("text-builder")
+    .setIssuedAt()
+    .setExpirationTime(expirationTime)
+    .setSubject(subject)
+    .setJti(uuid7())
+    .sign(secret);
 }
 
-export function createUserAccessToken(payload: UserTokenClaim): string | null {
-  return createJsonWebToken(null, accessTokenSecret, {
-    expiresIn: "1h",
-    subject: payload.subject,
-  });
+export async function createUserAccessToken(
+  subject: string,
+): Promise<string | null> {
+  return createJsonWebToken(accessTokenSecret, subject, "1h");
 }
 
-export function createUserRefreshToken(payload: UserTokenClaim): string | null {
-  return createJsonWebToken(null, refreshTokenSecret, {
-    expiresIn: "28d",
-    subject: payload.subject,
-  });
+export function createUserRefreshToken(
+  subject: string,
+): Promise<string | null> {
+  return createJsonWebToken(refreshTokenSecret, subject, "28d");
 }
 
 export function jwtExpToDateValue(exp: number): number {
@@ -47,10 +50,11 @@ export function jwtExpToISOString(exp: number): string {
 export function isUserTokenPayload(
   tokenPayload: any,
 ): tokenPayload is UserTokenPayload {
-  const { iss, sub, exp, jti } = tokenPayload ?? {};
+  const { iss, iat, sub, exp, jti } = tokenPayload ?? {};
 
   return (
     iss === "text-builder" &&
+    typeof iat === "number" &&
     typeof sub === "string" &&
     typeof exp === "number" &&
     typeof jti === "string"
@@ -68,16 +72,9 @@ export type DecodedUserToken = {
 };
 
 export type UserTokenPayload = {
+  iat: number;
   iss: "text-builder";
   sub: string;
   exp: number;
   jti: string;
-};
-
-export type JWTPrivateClaim = {
-  [key: string]: JsonValue;
-};
-
-export type UserTokenClaim = {
-  subject: string;
 };

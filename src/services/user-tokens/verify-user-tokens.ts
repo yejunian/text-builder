@@ -1,4 +1,5 @@
-import jwt from "jsonwebtoken";
+import { decodeJwt, jwtVerify, JWTVerifyOptions } from "jose";
+import { JWTExpired } from "jose/errors";
 
 import { deleteUserRefreshToken } from "@/repositories/user-tokens/delete-user-refresh-token";
 import { selectUserRefreshToken } from "@/repositories/user-tokens/select-user-refresh-tokens";
@@ -16,7 +17,7 @@ export async function verifyUserTokens(
   accessToken: string | null,
   refreshToken: string,
 ): Promise<TokenVerificationResult> {
-  const rtPayload = jwt.decode(refreshToken, { json: true });
+  const rtPayload = decodeJwt(refreshToken);
 
   if (!isUserTokenPayload(rtPayload)) {
     return "payload";
@@ -26,7 +27,7 @@ export async function verifyUserTokens(
     return await reissueUserTokens(rtPayload.sub, refreshToken, rtPayload.jti);
   }
 
-  const atPayload = jwt.decode(accessToken, { json: true });
+  const atPayload = decodeJwt(accessToken);
 
   if (!isUserTokenPayload(atPayload) || atPayload.sub !== rtPayload.sub) {
     return "payload";
@@ -98,7 +99,7 @@ async function verifySingleToken(
   const isRefreshToken = tokenType === "refresh";
   const secret = isRefreshToken ? refreshTokenSecret : accessTokenSecret;
 
-  const payload = verifyJsonWebToken(token, secret);
+  const payload = await verifyJsonWebToken(token, secret);
 
   if (typeof payload === "string") {
     return payload;
@@ -114,20 +115,20 @@ async function verifySingleToken(
   return payload;
 }
 
-function verifyJsonWebToken(
+async function verifyJsonWebToken(
   token: string,
-  secret: string,
-  verifyOptions: jwt.VerifyOptions = {},
-): UserTokenPayload | JwtFailure {
+  secret: Uint8Array,
+  verifyOptions: JWTVerifyOptions = {},
+): Promise<UserTokenPayload | JwtFailure> {
   try {
-    const payload = jwt.verify(token, secret, {
+    const { payload } = await jwtVerify<UserTokenPayload>(token, secret, {
       ...verifyOptions,
       issuer: "text-builder",
     });
 
-    return isUserTokenPayload(payload) ? payload : "payload";
+    return payload;
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof JWTExpired) {
       return "expired";
     } else {
       return "payload";

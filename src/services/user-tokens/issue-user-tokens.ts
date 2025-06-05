@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import { decodeJwt } from "jose";
 
 import { insertUserRefreshToken } from "@/repositories/user-tokens/insert-user-refresh-token";
 import {
@@ -12,15 +12,15 @@ import {
 export async function issueUserTokens(
   userId: string,
 ): Promise<Omit<UserTokenPair, "reissued"> | null> {
-  const accessToken = createUserAccessToken({ subject: userId });
-  const refreshToken = createUserRefreshToken({ subject: userId });
+  const accessToken = await createUserAccessToken(userId);
+  const refreshToken = await createUserRefreshToken(userId);
 
   if (!accessToken || !refreshToken) {
     return null;
   }
 
-  const atPayload = jwt.decode(accessToken, { json: true });
-  const rtPayload = jwt.decode(refreshToken, { json: true });
+  const atPayload = decodeJwt(accessToken);
+  const rtPayload = decodeJwt(refreshToken);
 
   if (!isUserTokenPayload(atPayload) || !isUserTokenPayload(rtPayload)) {
     return null;
