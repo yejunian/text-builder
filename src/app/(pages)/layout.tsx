@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import "@/globals.css";
 
+import { UserProvider } from "@/contexts/user";
+
 export const metadata: Metadata = {
   title: "텍스트 빌더",
   description:
@@ -15,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <UserProvider>{children}</UserProvider>
+      </body>
     </html>
   );
 }
