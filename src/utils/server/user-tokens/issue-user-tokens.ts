@@ -1,11 +1,9 @@
 import { decodeJwt } from "jose";
 
-import { insertUserRefreshToken } from "@/repositories/user-tokens/insert-user-refresh-token";
 import {
   createUserAccessToken,
   createUserRefreshToken,
   isUserTokenPayload,
-  jwtExpToISOString,
   UserTokenPair,
 } from "@/utils/server/user-token";
 
@@ -23,16 +21,6 @@ export async function issueUserTokens(
   const rtPayload = decodeJwt(refreshToken);
 
   if (!isUserTokenPayload(atPayload) || !isUserTokenPayload(rtPayload)) {
-    return null;
-  }
-
-  const tokenInsertSuccess = await insertUserRefreshToken({
-    tokenId: rtPayload.jti,
-    ownerId: userId,
-    exp: jwtExpToISOString(rtPayload.exp),
-  });
-
-  if (!tokenInsertSuccess) {
     return null;
   }
 

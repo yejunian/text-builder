@@ -1,13 +1,20 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 import status from "http-status";
 
 import { loginUser } from "@/services/users/login-user";
 import { isUserLoginReqBody, UserLoginResBody } from "@/types/users";
 import { jwtExpToDateValue } from "@/utils/server/user-token";
+import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const userTokens = await getUserTokens(request);
+
+  if (userTokens) {
+    return new Response(null, { status: status.CONFLICT });
+  }
+
   let body: unknown;
 
   try {
@@ -26,10 +33,6 @@ export async function POST(request: Request) {
 
     if (typeof loginResult === "string") {
       switch (loginResult) {
-        case "logged_in":
-          // 이미 로그인함
-          return new Response(null, { status: status.BAD_REQUEST });
-
         case "password":
           // loginName, password 오류
           return new Response(null, { status: status.BAD_REQUEST });
@@ -49,7 +52,13 @@ export async function POST(request: Request) {
       }
     }
 
-    const cookieStore = await cookies();
+    const responseBody: UserLoginResBody = {
+      loginName: loginResult.loginName,
+      displayName: loginResult.displayName,
+    };
+
+    const response = NextResponse.json(responseBody, { status: status.OK });
+
     const { tokens } = loginResult;
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
@@ -58,21 +67,16 @@ export async function POST(request: Request) {
       path: "/",
     };
 
-    cookieStore.set("accessToken", tokens.access.token, {
+    response.cookies.set("accessToken", tokens.access.token, {
       ...defaultCookie,
       expires: new Date(jwtExpToDateValue(tokens.access.payload.exp)),
     });
-    cookieStore.set("refreshToken", tokens.refresh.token, {
+    response.cookies.set("refreshToken", tokens.refresh.token, {
       ...defaultCookie,
       expires: new Date(jwtExpToDateValue(tokens.refresh.payload.exp)),
     });
 
-    const responseBody: UserLoginResBody = {
-      loginName: loginResult.loginName,
-      displayName: loginResult.displayName,
-    };
-
-    return Response.json(responseBody, { status: status.OK });
+    return response;
   } catch (error) {
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }

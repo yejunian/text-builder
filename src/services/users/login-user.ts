@@ -3,18 +3,11 @@ import { UserLoginReqBody } from "@/types/users";
 import { hashPassword } from "@/utils/server/password";
 import { UserTokenPair } from "@/utils/server/user-token";
 
-import { issueUserTokens } from "../user-tokens/issue-user-tokens";
-import { getUserTokens } from "./get-user-tokens";
+import { issueUserTokens } from "../../utils/server/user-tokens/issue-user-tokens";
 
 export async function loginUser(
   user: UserLoginReqBody,
 ): Promise<UserLoginResult> {
-  const userTokens = await getUserTokens();
-
-  if (userTokens) {
-    return "logged_in";
-  }
-
   const selectedUser = await selectUserWithPassword(user.loginName);
 
   if (!selectedUser) {
@@ -54,4 +47,4 @@ export type UserLoginSuccess = {
   tokens: Omit<UserTokenPair, "reissued">;
 };
 
-export type UserLoginFailure = "logged_in" | "password" | "token" | "unknown";
+export type UserLoginFailure = "password" | "token" | "unknown";

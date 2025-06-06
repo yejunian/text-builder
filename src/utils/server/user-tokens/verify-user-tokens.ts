@@ -1,8 +1,6 @@
 import { decodeJwt, jwtVerify, JWTVerifyOptions } from "jose";
 import { JWTExpired } from "jose/errors";
 
-import { deleteUserRefreshToken } from "@/repositories/user-tokens/delete-user-refresh-token";
-import { selectUserRefreshToken } from "@/repositories/user-tokens/select-user-refresh-tokens";
 import {
   accessTokenSecret,
   isUserTokenPayload,
@@ -24,7 +22,7 @@ export async function verifyUserTokens(
   }
 
   if (!accessToken) {
-    return await reissueUserTokens(rtPayload.sub, refreshToken, rtPayload.jti);
+    return await reissueUserTokens(rtPayload.sub, refreshToken);
   }
 
   const atPayload = decodeJwt(accessToken);
@@ -33,14 +31,14 @@ export async function verifyUserTokens(
     return "payload";
   }
 
-  const atResult = await verifySingleToken(accessToken, "access");
+  const atResult = await verifyJsonWebToken(accessToken, accessTokenSecret);
 
   if (atResult === "payload") {
     return "payload";
   }
 
   if (atResult === "expired") {
-    return await reissueUserTokens(rtPayload.sub, refreshToken, rtPayload.jti);
+    return await reissueUserTokens(rtPayload.sub, refreshToken);
   }
 
   // 성공(갱신 없음): 정상 토큰
@@ -60,12 +58,8 @@ export async function verifyUserTokens(
 async function reissueUserTokens(
   userId: string,
   refreshToken: string,
-  refreshTokenJti: string,
 ): Promise<TokenVerificationResult> {
-  const rtResult = await verifySingleToken(refreshToken, "refresh");
-
-  // 결과가 어떻든 기존 리프레시 토큰은 삭제됨
-  await deleteUserRefreshToken(userId, refreshTokenJti);
+  const rtResult = await verifyJsonWebToken(refreshToken, refreshTokenSecret);
 
   if (typeof rtResult === "string") {
     return rtResult;
@@ -82,37 +76,6 @@ async function reissueUserTokens(
     ...userTokens,
     reissued: true,
   };
-}
-
-async function verifySingleToken(
-  token: string,
-  tokenType: "access",
-): Promise<UserTokenPayload | JwtFailure>;
-async function verifySingleToken(
-  token: string,
-  tokenType: "refresh",
-): Promise<UserTokenPayload | RefreshTokenFailure>;
-async function verifySingleToken(
-  token: string,
-  tokenType: "access" | "refresh",
-): Promise<UserTokenPayload | RefreshTokenFailure> {
-  const isRefreshToken = tokenType === "refresh";
-  const secret = isRefreshToken ? refreshTokenSecret : accessTokenSecret;
-
-  const payload = await verifyJsonWebToken(token, secret);
-
-  if (typeof payload === "string") {
-    return payload;
-  }
-
-  if (isRefreshToken) {
-    const { sub, jti } = payload;
-    const selectedToken = await selectUserRefreshToken(sub, jti);
-
-    return selectedToken ? payload : "revoked";
-  }
-
-  return payload;
 }
 
 async function verifyJsonWebToken(

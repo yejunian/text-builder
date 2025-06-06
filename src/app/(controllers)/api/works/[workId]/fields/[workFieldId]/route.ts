@@ -1,11 +1,13 @@
+import { NextRequest } from "next/server";
+
 import status from "http-status";
 
-import { getUserTokens } from "@/services/users/get-user-tokens";
 import { modifyWorkField } from "@/services/work-fields/modify-work-field";
 import { isWorkFieldCreationReqBody } from "@/types/work-fields";
+import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
-export async function PUT(request: Request, { params }: PutContext) {
-  const userTokens = await getUserTokens();
+export async function PUT(request: NextRequest, { params }: PutContext) {
+  const userTokens = await getUserTokens(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });

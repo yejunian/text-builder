@@ -1,33 +1,23 @@
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 import status from "http-status";
 
-import { deleteUserRefreshToken } from "@/repositories/user-tokens/delete-user-refresh-token";
-import { getUserTokens } from "@/services/users/get-user-tokens";
+import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
-export async function GET(request: Request) {
-  const userTokens = await getUserTokens();
+export async function GET(request: NextRequest) {
+  const userTokens = await getUserTokens(request);
 
   if (!userTokens) {
-    return new Response(null, { status: status.UNAUTHORIZED });
+    return new Response(null, { status: status.CONFLICT });
   }
 
-  const tokenDeleteSuccess = await deleteUserRefreshToken(
-    userTokens.refresh.payload.sub,
-    userTokens.refresh.payload.jti,
-  );
-
-  if (!tokenDeleteSuccess) {
-    console.error("Refresh token revocation error");
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
-  }
-
-  const cookieStore = await cookies();
-  cookieStore.delete("accessToken");
-  cookieStore.delete("refreshToken");
-
-  return Response.redirect(
+  const response = NextResponse.redirect(
     new URL("/", request.url),
     status.TEMPORARY_REDIRECT,
   );
+
+  response.cookies.delete("accessToken");
+  response.cookies.delete("refreshToken");
+
+  return response;
 }

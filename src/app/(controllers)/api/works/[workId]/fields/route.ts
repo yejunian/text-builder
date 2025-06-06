@@ -1,12 +1,14 @@
+import { NextRequest } from "next/server";
+
 import status from "http-status";
 
-import { getUserTokens } from "@/services/users/get-user-tokens";
 import { createWorkField } from "@/services/work-fields/create-work-fields";
 import { isWorkFieldCreationReqBody } from "@/types/work-fields";
+import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
 // 새 작업 필드 생성
-export async function POST(request: Request, { params }: PostContext) {
-  const userTokens = await getUserTokens();
+export async function POST(request: NextRequest, { params }: PostContext) {
+  const userTokens = await getUserTokens(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });
