@@ -1,6 +1,6 @@
 import { forbiddenNamePattern } from "@/utils/strings";
 
-import { WorkField } from "./work-fields";
+import { WorkField } from "./work-field";
 
 export type WorkCreationReqBody = {
   slug: string;

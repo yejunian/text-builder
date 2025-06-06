@@ -4,7 +4,7 @@ import { DatabaseError } from "pg";
 import { db } from "@/db";
 import { usersTable, workFieldsTable, worksTable } from "@/db/schema";
 import { DbInsertFailure } from "@/types/server/db-result";
-import { WorkFieldModification } from "@/types/work-fields";
+import { WorkFieldModification } from "@/types/work-field";
 
 export async function updateWorkField(
   workField: WorkFieldUpdate,

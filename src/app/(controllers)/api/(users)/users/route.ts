@@ -1,7 +1,7 @@
 import status from "http-status";
 
 import { createUser } from "@/services/users/create-user";
-import { isUserCreationReqBody } from "@/types/users";
+import { isUserCreationReqBody } from "@/types/user";
 
 export async function POST(request: Request) {
   let _body: unknown;

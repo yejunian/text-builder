@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import status from "http-status";
 
 import { modifyWorkField } from "@/services/work-fields/modify-work-field";
-import { isWorkFieldCreationReqBody } from "@/types/work-fields";
+import { isWorkFieldCreationReqBody } from "@/types/work-field";
 import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
 export async function PUT(request: NextRequest, { params }: PutContext) {

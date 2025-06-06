@@ -2,7 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, worksTable } from "@/db/schema";
-import { WorkRead } from "@/types/works";
+import { WorkRead } from "@/types/work";
 
 export async function selectWork(
   workRead: WorkRead,

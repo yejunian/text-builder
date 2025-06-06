@@ -2,7 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, worksTable } from "@/db/schema";
-import { AllWorksRead } from "@/types/works";
+import { AllWorksRead } from "@/types/work";
 
 import { WorkSelectSuccess } from "./select-work";
 

@@ -64,3 +64,15 @@ export type UserLoginResBody = {
   loginName: string;
   displayName: string | null;
 };
+
+export function isUserLoginResBody(obj: any): obj is UserLoginResBody {
+  if (!obj?.loginName || typeof obj.loginName !== "string") {
+    return false;
+  }
+
+  if (obj?.displayName && typeof obj.displayName !== "string") {
+    return false;
+  }
+
+  return true;
+}

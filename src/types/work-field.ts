@@ -1,5 +1,5 @@
-import { UpsertionTimestamps } from "./crud-timestamps";
-import { isWorkFieldTypeName, WorkFieldTypeName } from "./work-field-types";
+import { UpsertionTimestamps } from "./crud-timestamp";
+import { isWorkFieldTypeName, WorkFieldTypeName } from "./work-field-type";
 
 export type WorkFieldCreationReqBody = {
   // order: number;

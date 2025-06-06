@@ -1,7 +1,7 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { NextRequest, NextResponse } from "next/server";
 
-import { jwtExpToDateValue } from "./utils/server/user-token";
+import { jwtExpToDateValue } from "./utils/server/jwt";
 import { verifyUserTokens } from "./utils/server/user-tokens/verify-user-tokens";
 
 export async function middleware(request: NextRequest) {

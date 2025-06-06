@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import { decodeJwt } from "jose";
 
-import { isUserTokenPayload, UserTokenPair } from "@/utils/server/user-token";
+import { isUserTokenPayload, UserTokenPair } from "@/types/server/user-token";
 
 export async function getUserTokens(
   request: NextRequest,

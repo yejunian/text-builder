@@ -1,6 +1,6 @@
 import { insertUser } from "@/repositories/users/insert-user";
 import { DbInsertResult } from "@/types/server/db-result";
-import { UserCreationReqBody } from "@/types/users";
+import { UserCreationReqBody } from "@/types/user";
 import { createSalt, hashPassword } from "@/utils/server/password";
 
 export async function createUser(

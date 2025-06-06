@@ -6,9 +6,9 @@ import {
   selectWork,
   WorkSelectFailure,
 } from "@/repositories/works/select-work";
-import { workFieldTypeIdToName } from "@/types/work-field-types";
-import { WorkField } from "@/types/work-fields";
-import { Work, WorkRead } from "@/types/works";
+import { Work, WorkRead } from "@/types/work";
+import { WorkField } from "@/types/work-field";
+import { workFieldTypeIdToName } from "@/types/work-field-type";
 
 export async function readWork(workRead: WorkRead): Promise<ReadWorkResult> {
   const work = await selectWork(workRead);

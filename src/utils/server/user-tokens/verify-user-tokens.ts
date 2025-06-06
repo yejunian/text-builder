@@ -2,13 +2,12 @@ import { decodeJwt, jwtVerify, JWTVerifyOptions } from "jose";
 import { JWTExpired } from "jose/errors";
 
 import {
-  accessTokenSecret,
   isUserTokenPayload,
-  refreshTokenSecret,
   UserTokenPair,
   UserTokenPayload,
-} from "@/utils/server/user-token";
+} from "@/types/server/user-token";
 
+import { ENV_SECRET_ACCESS_TOKEN, ENV_SECRET_REFRESH_TOKEN } from "../env";
 import { issueUserTokens } from "./issue-user-tokens";
 
 export async function verifyUserTokens(
@@ -31,7 +30,10 @@ export async function verifyUserTokens(
     return "payload";
   }
 
-  const atResult = await verifyJsonWebToken(accessToken, accessTokenSecret);
+  const atResult = await verifyJsonWebToken(
+    accessToken,
+    ENV_SECRET_ACCESS_TOKEN,
+  );
 
   if (atResult === "payload") {
     return "payload";
@@ -59,7 +61,10 @@ async function reissueUserTokens(
   userId: string,
   refreshToken: string,
 ): Promise<TokenVerificationResult> {
-  const rtResult = await verifyJsonWebToken(refreshToken, refreshTokenSecret);
+  const rtResult = await verifyJsonWebToken(
+    refreshToken,
+    ENV_SECRET_REFRESH_TOKEN,
+  );
 
   if (typeof rtResult === "string") {
     return rtResult;

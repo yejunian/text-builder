@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import status from "http-status";
 
 import { loginUser } from "@/services/users/login-user";
-import { isUserLoginReqBody, UserLoginResBody } from "@/types/users";
-import { jwtExpToDateValue } from "@/utils/server/user-token";
+import { isUserLoginReqBody, UserLoginResBody } from "@/types/user";
+import { jwtExpToDateValue } from "@/utils/server/jwt";
 import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
 export async function POST(request: NextRequest) {

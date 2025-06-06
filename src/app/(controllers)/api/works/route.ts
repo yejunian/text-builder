@@ -4,7 +4,7 @@ import status from "http-status";
 
 import { createWork } from "@/services/works/create-work";
 import { readAllWorks } from "@/services/works/read-all-works";
-import { isWorkCreationReqBody } from "@/types/works";
+import { isWorkCreationReqBody } from "@/types/work";
 import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
 
 // 계정이 소유한 작업 목록 조회

@@ -4,7 +4,5 @@ export type UpsertionTimestamps = {
 };
 
 export type DeletionTimestamp = {
-  createdAt: string;
-  updatedAt: string;
   deletedAt: string;
 };

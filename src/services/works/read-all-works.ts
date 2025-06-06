@@ -2,7 +2,7 @@ import {
   AllWorksSelectFailure,
   selectAllWorks,
 } from "@/repositories/works/select-all-works";
-import { AllWorksRead, WorkMetadata } from "@/types/works";
+import { AllWorksRead, WorkMetadata } from "@/types/work";
 
 export async function readAllWorks(
   worksRead: AllWorksRead,

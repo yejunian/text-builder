@@ -2,8 +2,8 @@ import {
   updateWorkField,
   WorkFieldUpdateResult,
 } from "@/repositories/work-fields/update-work-field";
-import { workFieldTypeNameToId } from "@/types/work-field-types";
-import { WorkFieldModification } from "@/types/work-fields";
+import { WorkFieldModification } from "@/types/work-field";
+import { workFieldTypeNameToId } from "@/types/work-field-type";
 
 export async function modifyWorkField(
   workFieldModification: WorkFieldModification,

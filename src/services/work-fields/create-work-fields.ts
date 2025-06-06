@@ -2,8 +2,8 @@ import {
   insertWorkField,
   WorkFieldInsertResult,
 } from "@/repositories/work-fields/insert-work-field";
-import { workFieldTypeNameToId } from "@/types/work-field-types";
-import { WorkFieldCreation } from "@/types/work-fields";
+import { WorkFieldCreation } from "@/types/work-field";
+import { workFieldTypeNameToId } from "@/types/work-field-type";
 
 export async function createWorkField(
   workFieldCreation: WorkFieldCreation,
