@@ -1,11 +1,13 @@
-import { LoginForm } from "@/components/login-form";
+import type React from "react";
+import { Metadata } from "next";
+
+import LoginForm from "./login-form";
+
+export const metadata: Metadata = {
+  title: "로그인 | 텍스트 빌더",
+  description: "로그인해서 텍스트 매크로를 만들고 활용해 보세요.",
+};
 
 export default function LoginPage() {
-  return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-      </div>
-    </div>
-  );
+  return <LoginForm />;
 }
