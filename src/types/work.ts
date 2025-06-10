@@ -50,3 +50,7 @@ export type WorkMetadata = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AllWorksResBody = {
+  allWorks: WorkMetadata[];
+};
