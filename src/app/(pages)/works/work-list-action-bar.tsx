@@ -1,13 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useContext } from "react";
+import Link from "next/link";
 
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { UserContext } from "@/contexts/user";
 
 export default function WorkListActionBar() {
-  const router = useRouter();
+  const { loginName } = useContext(UserContext);
 
   return (
     <div className="flex gap-2">
@@ -25,9 +27,10 @@ export default function WorkListActionBar() {
         </SelectContent>
       </Select> */}
 
-      {/* TODO: 버튼 상호작용 */}
-      <Button size="sm" onClick={() => router.push("/works/new")}>
-        <Plus className="h-4 w-4" />새 텍스트 매크로
+      <Button asChild size="sm">
+        <Link href={`/works/${loginName}/new`}>
+          <Plus className="h-4 w-4" />새 텍스트 매크로
+        </Link>
       </Button>
     </div>
   );
