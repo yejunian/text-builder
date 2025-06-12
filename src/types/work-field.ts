@@ -31,6 +31,10 @@ export function isWorkFieldCreationReqBody(
   return true;
 }
 
+export type WorkFieldCreationResBody = {
+  workFieldId: string;
+};
+
 export type WorkFieldCreation = WorkFieldCreationReqBody & {
   parentId: string;
 };

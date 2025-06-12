@@ -5,6 +5,7 @@ import { v7 as uuid7 } from "uuid";
 import { db } from "@/db";
 import { workFieldsTable } from "@/db/schema";
 import { DbInsertFailure } from "@/types/server/db-result";
+import { WorkFieldCreationResBody } from "@/types/work-field";
 
 export async function insertWorkField(
   workFieldInsert: WorkFieldInsertValue,
@@ -58,7 +59,4 @@ export type WorkFieldInsertValue = Pick<
   | "isPublic"
 >;
 
-export type WorkFieldInsertResult = WorkFieldInsertSuccess | DbInsertFailure;
-export type WorkFieldInsertSuccess = {
-  workFieldId: string;
-};
+export type WorkFieldInsertResult = WorkFieldCreationResBody | DbInsertFailure;
