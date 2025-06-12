@@ -70,13 +70,12 @@ export function WorkProvider({
         }
       },
 
-      createWorkField: async (
-        field: Pick<WorkFieldCreationReqBody, "name" | "value">,
-      ) => {
+      createWorkField: async (field: WorkField) => {
         try {
           const requestbody: WorkFieldCreationReqBody = {
-            ...field,
+            name: field.fieldName,
             type: "text",
+            value: field.fieldValue,
             isPublic: true,
           };
 
@@ -88,25 +87,32 @@ export function WorkProvider({
             },
           );
 
-          // TODO: API 요청 및 핸들링
           if (response.status === 401) {
             alert("로그인이 필요합니다.");
             router.push("/login");
-            return;
+            return false;
           } else if (!response.ok) {
             alert("필드 생성에 실패했습니다.");
-            return;
+            return false;
           }
 
+          // TODO: 응답으로, 생성된 새 필드 자체를 온전하게 받을 필요가 있음.
           const { workFieldId }: WorkFieldCreationResBody =
             await response.json();
-          // TODO: workFields에 workFieldId 넣어야 함.
-          //       새로 추가하는 필드를 관리하는 방법이 정해지면 작성.
-          // workFields.fields.at(-1)?.workFieldId = workFieldId;
-          setWorkFields([...workFields]); // TODO: 뒤에 하나 추가
+
+          setWorkFields([
+            ...workFields,
+            {
+              ...field,
+              workFieldId,
+            },
+          ]);
           setContextMemoId(Date.now());
+
+          return true;
         } catch (error) {
           console.error(error);
+          return false;
         }
       },
 
@@ -126,7 +132,11 @@ export function WorkProvider({
           },
         );
 
-        if (!response.ok) {
+        if (response.status === 401) {
+          alert("로그인이 필요합니다.");
+          router.push("/login");
+          return false;
+        } else if (!response.ok) {
           alert(`${field.fieldName} 필드를 변경하는 데 실패했습니다.`);
           return false;
         }
@@ -162,6 +172,6 @@ type WorkContextValue = {
   workFields: WorkField[];
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
-  createWorkField: (field: WorkFieldCreationReqBody) => void | Promise<void>;
+  createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
 };

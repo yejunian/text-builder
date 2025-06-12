@@ -14,19 +14,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkField } from "@/types/work-field";
 
-interface FieldEditorProps {
+type Props = {
   field: WorkField;
   onSave: (field: WorkField) => void;
   onCancel: (fieldId: string) => void;
   // onDelete: (fieldId: string) => void;
-}
+};
 
-export function FieldEditor({
+export default function FieldEditor({
   field,
   onSave,
   onCancel,
   // onDelete,
-}: FieldEditorProps) {
+}: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
 
   const handleChange = (key: keyof WorkField, value: any) => {

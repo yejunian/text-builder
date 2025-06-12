@@ -5,12 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkField } from "@/types/work-field";
 
-interface Props {
+type Props = {
   field: WorkField;
   onEdit: () => void;
-}
+};
 
-export function FieldDisplay({ field, onEdit }: Props) {
+export default function FieldDisplay({ field, onEdit }: Props) {
   return (
     <Card className="border shadow-sm">
       <CardContent className="space-y-4">
