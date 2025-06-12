@@ -1,11 +1,12 @@
 "use client";
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WorkContext } from "@/contexts/work";
+import { WorkField } from "@/types/work-field";
 
 import { FieldDisplay } from "./field-display";
 import { FieldEditor } from "./field-editor";
@@ -15,40 +16,59 @@ type Props = {
 };
 
 export default function FieldList({ workId }: Props) {
-  const { workFields, fetchWorkWithFields } = useContext(WorkContext);
+  const { workFields, fetchWorkWithFields, updateWorkField } =
+    useContext(WorkContext);
+  const [editingFields, setEditingFields] = useState({
+    data: new Set<string>(),
+  });
 
   useEffect(() => {
     fetchWorkWithFields(workId);
   }, [workId]);
 
-  // XXX: <!-- TEMP
-  const editingFieldId = null;
-  const handleSaveField = () => alert("onSave");
-  const handleCancelEdit = () => alert("onCancel");
-  const handleDeleteField = () => alert("onDelete");
-  const handleEditField = (id: string) => alert(`onEdit("${id}")`);
-  const handleAddField = () => alert("handleAddField");
-  // XXX: TEMP -->
+  const handleEditField = (id: string) => {
+    editingFields.data.add(id);
+    setEditingFields({ ...editingFields });
+  };
+
+  const handleSaveField = async (nextField: WorkField) => {
+    const success = await updateWorkField(nextField);
+
+    if (success) {
+      editingFields.data.delete(nextField.workFieldId);
+      setEditingFields({ ...editingFields });
+    }
+  };
+
+  const handleCancelEdit = (id: string) => {
+    editingFields.data.delete(id);
+    setEditingFields({ ...editingFields });
+  };
+
+  // TODO: 필드 생성 폼 표시, API 호출, 응답 핸들링 구현
+  const handleAddField = () => {
+    alert("handleAddField");
+  };
 
   return (
     <div className="space-y-4">
-      {workFields.data.map((field) => (
-        <div key={field.workFieldId}>
-          {editingFieldId === field.workFieldId ? (
-            <FieldEditor
-              field={field}
-              onSave={handleSaveField}
-              onCancel={handleCancelEdit}
-              onDelete={handleDeleteField}
-            />
-          ) : (
-            <FieldDisplay
-              field={field}
-              onEdit={() => handleEditField(field.workFieldId)}
-            />
-          )}
-        </div>
-      ))}
+      {workFields.map((field) =>
+        editingFields.data.has(field.workFieldId) ? (
+          <FieldEditor
+            key={field.workFieldId}
+            field={field}
+            onSave={handleSaveField}
+            onCancel={handleCancelEdit}
+            // onDelete={handleDeleteField}
+          />
+        ) : (
+          <FieldDisplay
+            key={field.workFieldId}
+            field={field}
+            onEdit={() => handleEditField(field.workFieldId)}
+          />
+        ),
+      )}
 
       <Button
         variant="outline"

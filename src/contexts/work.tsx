@@ -22,7 +22,7 @@ const emptyWorkMetadata = {
 
 export const WorkContext = createContext<WorkContextValue>({
   workMetadata: { ...emptyWorkMetadata },
-  workFields: { data: [] },
+  workFields: [],
   fetchWorkWithFields: nop,
   createWorkField: nop,
   updateWorkField: nop,
@@ -37,9 +37,7 @@ export function WorkProvider({
 
   const [workMetadata, setWorkMetadata] =
     useState<WorkMetadata>(emptyWorkMetadata);
-  const [workFields, setWorkFields] = useState<{ data: WorkField[] }>({
-    data: [],
-  });
+  const [workFields, setWorkFields] = useState<WorkField[]>([]);
   const [contextMemoId, setContextMemoId] = useState(0);
 
   const contextValue = useMemo<WorkContextValue>(
@@ -65,7 +63,7 @@ export function WorkProvider({
 
           const { fields, ...nextWorkMetadata }: Work = await response.json();
           setWorkMetadata(nextWorkMetadata);
-          setWorkFields({ data: fields });
+          setWorkFields(fields);
           setContextMemoId(Date.now());
         } catch (error) {
           console.error(error);
@@ -105,15 +103,52 @@ export function WorkProvider({
           // TODO: workFields에 workFieldId 넣어야 함.
           //       새로 추가하는 필드를 관리하는 방법이 정해지면 작성.
           // workFields.fields.at(-1)?.workFieldId = workFieldId;
-          setWorkFields({ data: workFields.data });
+          setWorkFields([...workFields]); // TODO: 뒤에 하나 추가
           setContextMemoId(Date.now());
         } catch (error) {
           console.error(error);
         }
       },
 
-      updateWorkField: (field: WorkFieldCreationReqBody) => {
-        // TODO: API 요청 및 핸들링},
+      updateWorkField: async (field: WorkField) => {
+        const requestBody: WorkFieldCreationReqBody = {
+          name: field.fieldName,
+          type: field.fieldType,
+          value: field.fieldValue,
+          isPublic: field.isPublic,
+        };
+
+        const response = await fetch(
+          `/api/works/${workMetadata.workId}/fields/${field.workFieldId}`,
+          {
+            method: "put",
+            body: JSON.stringify(requestBody),
+          },
+        );
+
+        if (!response.ok) {
+          alert(`${field.fieldName} 필드를 변경하는 데 실패했습니다.`);
+          return false;
+        }
+
+        const nextWorkFields = workFields.map<WorkField>((value) => {
+          if (value.workFieldId === field.workFieldId) {
+            return {
+              ...value,
+              fieldName: field.fieldName,
+              fieldType: field.fieldType,
+              fieldValue: field.fieldValue,
+              isPublic: field.isPublic,
+            };
+          } else {
+            return value;
+          }
+        });
+
+        setWorkFields(nextWorkFields);
+        setContextMemoId(Date.now());
+
+        return true;
       },
     }),
     [contextMemoId],
@@ -124,9 +159,9 @@ export function WorkProvider({
 
 type WorkContextValue = {
   workMetadata: WorkMetadata;
-  workFields: { data: WorkField[] };
+  workFields: WorkField[];
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
   createWorkField: (field: WorkFieldCreationReqBody) => void | Promise<void>;
-  updateWorkField: (field: WorkFieldCreationReqBody) => void | Promise<void>;
+  updateWorkField: (field: WorkField) => void | Promise<boolean>;
 };

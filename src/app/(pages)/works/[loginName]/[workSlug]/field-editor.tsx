@@ -3,32 +3,29 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkField } from "@/types/work-field";
 
 interface FieldEditorProps {
   field: WorkField;
   onSave: (field: WorkField) => void;
-  onCancel: () => void;
-  onDelete: (fieldId: string) => void;
+  onCancel: (fieldId: string) => void;
+  // onDelete: (fieldId: string) => void;
 }
 
 export function FieldEditor({
   field,
   onSave,
   onCancel,
-  onDelete,
+  // onDelete,
 }: FieldEditorProps) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
 
@@ -36,14 +33,13 @@ export function FieldEditor({
     setEditedField({ ...editedField, [key]: value });
   };
 
-  // TODO: API 요청의 처리 결과로 onSave 호출
-  const handleSave = () => {
-    onSave(editedField);
-  };
-
   return (
     <Card className="border shadow-sm">
-      <CardContent className="space-y-4 pt-6">
+      <CardHeader>
+        <h3 className="text-lg font-medium">편집: {field.fieldName}</h3>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="field-name">필드 이름</Label>
           <Input
@@ -53,7 +49,7 @@ export function FieldEditor({
           />
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="field-type">타입</Label>
           <Select
             value={editedField.fieldType}
@@ -69,26 +65,25 @@ export function FieldEditor({
               <SelectItem value="formula">formula</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label htmlFor="field-value">값</Label>
           <Textarea
             id="field-value"
-            rows={5}
             value={editedField.fieldValue}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
           />
         </div>
 
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Checkbox
             id="is-private"
             checked={!editedField.isPublic}
             onCheckedChange={(checked) => handleChange("isPublic", !checked)}
           />
           <Label htmlFor="is-private">편집 화면에서만 표시</Label>
-        </div>
+        </div> */}
       </CardContent>
 
       <CardFooter className="flex justify-between">
@@ -100,10 +95,10 @@ export function FieldEditor({
         </div>
 
         <div className="space-x-2">
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={() => onCancel(field.workFieldId)}>
             취소
           </Button>
-          <Button onClick={handleSave}>확인</Button>
+          <Button onClick={() => onSave(editedField)}>확인</Button>
         </div>
       </CardFooter>
     </Card>
