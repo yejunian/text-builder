@@ -16,8 +16,13 @@ type Props = {
 };
 
 export default function FieldList({ workId }: Props) {
-  const { workFields, fetchWorkWithFields, createWorkField, updateWorkField } =
-    useContext(WorkContext);
+  const {
+    workFields,
+    derivedFieldValues,
+    fetchWorkWithFields,
+    createWorkField,
+    updateWorkField,
+  } = useContext(WorkContext);
   const [editingFields, setEditingFields] = useState({
     data: new Set<string>(),
   });
@@ -73,6 +78,7 @@ export default function FieldList({ workId }: Props) {
           <FieldDisplay
             key={field.workFieldId}
             field={field}
+            derivedFieldValue={derivedFieldValues[field.fieldName]}
             onEdit={() => handleEditField(field.workFieldId)}
           />
         ),

@@ -7,10 +7,15 @@ import { WorkField } from "@/types/work-field";
 
 type Props = {
   field: WorkField;
+  derivedFieldValue: string;
   onEdit: () => void;
 };
 
-export default function FieldDisplay({ field, onEdit }: Props) {
+export default function FieldDisplay({
+  field,
+  derivedFieldValue,
+  onEdit,
+}: Props) {
   return (
     <Card className="border shadow-sm">
       <CardContent className="space-y-4">
@@ -34,7 +39,7 @@ export default function FieldDisplay({ field, onEdit }: Props) {
 
         <Textarea
           readOnly
-          value={field.fieldValue}
+          value={derivedFieldValue ?? field.fieldValue}
           className="bg-muted/30 resize-none"
           onClick={(event) => {
             (event.target as HTMLTextAreaElement).select();

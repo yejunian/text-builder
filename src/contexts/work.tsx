@@ -23,6 +23,7 @@ const emptyWorkMetadata = {
 export const WorkContext = createContext<WorkContextValue>({
   workMetadata: { ...emptyWorkMetadata },
   workFields: [],
+  derivedFieldValues: {},
   fetchWorkWithFields: nop,
   createWorkField: nop,
   updateWorkField: nop,
@@ -38,12 +39,32 @@ export function WorkProvider({
   const [workMetadata, setWorkMetadata] =
     useState<WorkMetadata>(emptyWorkMetadata);
   const [workFields, setWorkFields] = useState<WorkField[]>([]);
-  const [contextMemoId, setContextMemoId] = useState(0);
+
+  const derivedFieldValues = useMemo<DerivedFieldValues>(() => {
+    const result: DerivedFieldValues = {};
+
+    for (let i = 0; i < workFields.length; i += 1) {
+      const field = workFields[i];
+      const fieldName = field.fieldName;
+      result[fieldName] = field.fieldValue;
+
+      for (let j = 0; j < i; j += 1) {
+        const priorField = workFields[j];
+        result[fieldName] = result[fieldName].replaceAll(
+          "{{" + priorField.fieldName + "}}",
+          result[priorField.fieldName],
+        );
+      }
+    }
+
+    return result;
+  }, [workMetadata, workFields]);
 
   const contextValue = useMemo<WorkContextValue>(
     () => ({
       workMetadata: workMetadata,
       workFields: workFields,
+      derivedFieldValues,
 
       fetchWorkWithFields: async (workId?: string) => {
         try {
@@ -57,14 +78,13 @@ export function WorkProvider({
             return;
           } else if (!response.ok) {
             setWorkMetadata(emptyWorkMetadata);
-            setContextMemoId(Date.now());
+            setWorkFields([]);
             return;
           }
 
           const { fields, ...nextWorkMetadata }: Work = await response.json();
           setWorkMetadata(nextWorkMetadata);
           setWorkFields(fields);
-          setContextMemoId(Date.now());
         } catch (error) {
           console.error(error);
         }
@@ -107,7 +127,6 @@ export function WorkProvider({
               workFieldId,
             },
           ]);
-          setContextMemoId(Date.now());
 
           return true;
         } catch (error) {
@@ -156,12 +175,11 @@ export function WorkProvider({
         });
 
         setWorkFields(nextWorkFields);
-        setContextMemoId(Date.now());
 
         return true;
       },
     }),
-    [contextMemoId],
+    [workMetadata, workFields],
   );
 
   return <WorkContext value={contextValue}>{children}</WorkContext>;
@@ -170,8 +188,13 @@ export function WorkProvider({
 type WorkContextValue = {
   workMetadata: WorkMetadata;
   workFields: WorkField[];
+  derivedFieldValues: DerivedFieldValues;
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
+};
+
+type DerivedFieldValues = {
+  [fieldName: string]: string;
 };
