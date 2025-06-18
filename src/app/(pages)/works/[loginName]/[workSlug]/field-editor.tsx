@@ -45,8 +45,17 @@ export default function FieldEditor({
           <Input
             id="field-name"
             value={editedField.fieldName}
+            autoFocus={!field.workFieldId}
             onChange={(e) => handleChange("fieldName", e.target.value)}
           />
+          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
+            <li>
+              <span className="bg-muted rounded-xs px-1 py-px">
+                {`{{${editedField.fieldName}}}`}
+              </span>
+              (으)로 이 필드의 값을 후속 필드에 넣을 수 있습니다.
+            </li>
+          </ul>
         </div>
 
         {/* <div className="space-y-2">
@@ -72,8 +81,17 @@ export default function FieldEditor({
           <Textarea
             id="field-value"
             value={editedField.fieldValue}
+            autoFocus={!!field.workFieldId}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
           />
+          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
+            <li>
+              <span className="bg-muted rounded-xs px-1 py-px">
+                {"{{필드 이름}}"}
+              </span>
+              (으)로 선행 필드의 값을 가져올 수 있습니다.
+            </li>
+          </ul>
         </div>
 
         {/* <div className="flex items-center space-x-2">
