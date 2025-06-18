@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>
+      <body className="wrap-break-word break-keep">
         <UserProvider>{children}</UserProvider>
       </body>
     </html>
