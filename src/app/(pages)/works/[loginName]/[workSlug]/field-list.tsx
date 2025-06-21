@@ -28,9 +28,15 @@ export default function FieldList({ workId }: Props) {
   });
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  useEffect(() => {
-    fetchWorkWithFields(workId);
-  }, [workId]);
+  useEffect(
+    () => {
+      fetchWorkWithFields(workId);
+    },
+    // 무시하는 항목: fetchWorkWithFields
+    // 목적: 작업 ID에 따라서만 작업을 다시 불러오고자 함.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [workId],
+  );
 
   const handleEditField = (id: string) => {
     editingFields.data.add(id);

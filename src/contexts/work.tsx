@@ -58,12 +58,12 @@ export function WorkProvider({
     }
 
     return result;
-  }, [workMetadata, workFields]);
+  }, [workFields]);
 
   const contextValue = useMemo<WorkContextValue>(
     () => ({
-      workMetadata: workMetadata,
-      workFields: workFields,
+      workMetadata,
+      workFields,
       derivedFieldValues,
 
       fetchWorkWithFields: async (workId?: string) => {
@@ -179,7 +179,9 @@ export function WorkProvider({
         return true;
       },
     }),
-    [workMetadata, workFields],
+    // 무시하는 항목: router
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [workMetadata, workFields, derivedFieldValues],
   );
 
   return <WorkContext value={contextValue}>{children}</WorkContext>;

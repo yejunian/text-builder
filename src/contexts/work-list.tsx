@@ -19,7 +19,6 @@ export function WorkListProvider({
   const router = useRouter();
 
   const [works, setWorks] = useState<WorkMetadata[]>([]);
-  const [worksId, setWorksId] = useState("");
 
   const contextValue = useMemo<WorkListContextValue>(
     () => ({
@@ -54,18 +53,14 @@ export function WorkListProvider({
               }),
             })),
           );
-          setWorksId(
-            allWorks.reduce(
-              (acc, { workId, updatedAt }) => `${acc}${workId}${updatedAt}`,
-              "",
-            ),
-          );
         } catch (error) {
           console.error(error);
         }
       },
     }),
-    [worksId],
+    // 무시하는 항목: router
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [works],
   );
 
   return <WorkListContext value={contextValue}>{children}</WorkListContext>;

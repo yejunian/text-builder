@@ -20,9 +20,15 @@ export default function WorkList() {
   const { loginName } = useContext(UserContext);
   const { works, fetchWorks } = useContext(WorkListContext);
 
-  useEffect(() => {
-    fetchWorks();
-  }, []);
+  useEffect(
+    () => {
+      fetchWorks();
+    },
+    // 무시하는 항목: fetchWorks
+    // 목적: 사용자에 따라서만 작업 목록을 다시 불러오고자 함.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loginName],
+  );
 
   return (
     <>
