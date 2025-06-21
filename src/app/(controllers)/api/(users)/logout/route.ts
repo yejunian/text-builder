@@ -11,10 +11,7 @@ export async function GET(request: NextRequest) {
     return new Response(null, { status: status.CONFLICT });
   }
 
-  const response = NextResponse.redirect(
-    new URL("/", request.url),
-    status.TEMPORARY_REDIRECT,
-  );
+  const response = new NextResponse(null, { status: status.OK });
 
   response.cookies.delete("accessToken");
   response.cookies.delete("refreshToken");

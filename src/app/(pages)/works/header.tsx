@@ -2,7 +2,9 @@
 
 import { useContext } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+import status from "http-status";
 import { FolderOpen, LogOut, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,23 @@ import {
 import { UserContext } from "@/contexts/user";
 
 export default function Header() {
+  const router = useRouter();
+
   const { loginName, displayName } = useContext(UserContext);
+
+  const handleLogout = async () => {
+    const response = await fetch("/api/logout");
+
+    if (response.status === status.CONFLICT) {
+      alert("이미 로그아웃된 상태입니다.");
+    } else if (!response.ok) {
+      alert("로그아웃에 실패했습니다.");
+      return;
+    }
+
+    localStorage.removeItem("text-builder--user");
+    router.push("/");
+  };
 
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
@@ -74,25 +92,25 @@ export default function Header() {
 
             <DropdownMenuSeparator />
 
-            {/* <DropdownMenuItem>
+            {/* <DropdownMenuItem className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
               계정 설정
             </DropdownMenuItem>
 
             <DropdownMenuSeparator /> */}
 
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem className="cursor-pointer" asChild>
               <Link href="/works">
                 <FolderOpen className="mr-2 h-4 w-4" />내 텍스트 매크로
               </Link>
             </DropdownMenuItem>
 
-            {/* <DropdownMenuItem>
+            {/* <DropdownMenuItem className="cursor-pointer">
               <Share2 className="mr-2 h-4 w-4" />
               공유 프로젝트
             </DropdownMenuItem> */}
 
-            {/* <DropdownMenuItem asChild>
+            {/* <DropdownMenuItem className="cursor-pointer" asChild>
               <Link href="/works?type=deleted">
                 <Trash2 className="mr-2 h-4 w-4" />
                 삭제한 프로젝트
@@ -101,12 +119,9 @@ export default function Header() {
 
             <DropdownMenuSeparator />
 
-            {/* TODO: 로그아웃 시 로컬스토리지에 유저 데이터가 남음 */}
-            <DropdownMenuItem asChild>
-              <Link href="/logout">
-                <LogOut className="mr-2 h-4 w-4" />
-                로그아웃
-              </Link>
+            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              로그아웃
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
