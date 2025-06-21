@@ -1,4 +1,5 @@
 import { UpsertionTimestamps } from "./crud-timestamp";
+import isObject from "./is-object";
 import { isWorkFieldTypeName, WorkFieldTypeName } from "./work-field-type";
 
 export type WorkFieldCreationReqBody = {
@@ -10,13 +11,17 @@ export type WorkFieldCreationReqBody = {
 };
 
 export function isWorkFieldCreationReqBody(
-  obj: any,
+  obj: unknown,
 ): obj is WorkFieldCreationReqBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
   if (!obj?.name || typeof obj.name !== "string") {
     return false;
   }
 
-  if (!obj?.type || !isWorkFieldTypeName(obj.type)) {
+  if (typeof obj?.type !== "string" || !isWorkFieldTypeName(obj.type)) {
     return false;
   }
 

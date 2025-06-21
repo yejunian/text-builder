@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   let _body: unknown;
   try {
     _body = await request.json();
-  } catch (error) {
+  } catch (_error) {
     // JSON이 아닌 요청 본문
     return new Response(null, { status: status.BAD_REQUEST });
   }

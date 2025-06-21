@@ -1,5 +1,6 @@
 import { forbiddenNamePattern } from "@/utils/strings";
 
+import isObject from "./is-object";
 import { WorkField } from "./work-field";
 
 export type WorkCreationReqBody = {
@@ -7,7 +8,13 @@ export type WorkCreationReqBody = {
   title: string;
 };
 
-export function isWorkCreationReqBody(obj: any): obj is WorkCreationReqBody {
+export function isWorkCreationReqBody(
+  obj: unknown,
+): obj is WorkCreationReqBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
   if (!isWorkSlug(obj?.slug)) {
     return false;
   }
@@ -19,9 +26,9 @@ export function isWorkCreationReqBody(obj: any): obj is WorkCreationReqBody {
   return true;
 }
 
-export function isWorkSlug(str: any): boolean {
+export function isWorkSlug(str: unknown): boolean {
   return (
-    str &&
+    !!str &&
     typeof str === "string" &&
     str.length > 0 &&
     str.length <= 150 &&

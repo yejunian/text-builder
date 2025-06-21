@@ -26,7 +26,7 @@ export const workFieldTypeIdToName = Object.freeze(
   ),
 );
 
-export function isWorkFieldTypeName(str: any): str is WorkFieldTypeName {
+export function isWorkFieldTypeName(str: string): str is WorkFieldTypeName {
   return (
     str === "unknown" ||
     workFieldTypeIdToName[
@@ -35,6 +35,6 @@ export function isWorkFieldTypeName(str: any): str is WorkFieldTypeName {
   );
 }
 
-export function isWorkFieldTypeId(num: any): num is WorkFieldTypeValue {
+export function isWorkFieldTypeId(num: number): num is WorkFieldTypeValue {
   return workFieldTypeNameToId[workFieldTypeIdToName[num]] === num;
 }

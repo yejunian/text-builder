@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 import status from "http-status";
 
-export async function GET(request: NextRequest, { params }: GetContext) {
+export async function GET(request: NextRequest) {
   if (request.cookies.get("accessToken")?.value) {
     return Response.redirect(
       new URL("/works", request.url),
@@ -15,9 +15,3 @@ export async function GET(request: NextRequest, { params }: GetContext) {
     );
   }
 }
-
-type GetContext = {
-  params: Promise<{
-    loginName: string;
-  }>;
-};

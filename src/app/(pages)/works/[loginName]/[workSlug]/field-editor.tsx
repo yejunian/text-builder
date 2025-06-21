@@ -29,7 +29,8 @@ export default function FieldEditor({
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
 
-  const handleChange = (key: keyof WorkField, value: any) => {
+  // TODO: value 타입을 더 정확하게 지정해야 함.
+  const handleChange = (key: keyof WorkField, value: string) => {
     setEditedField({ ...editedField, [key]: value });
   };
 

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   try {
     body = await request.json();
-  } catch (error) {
+  } catch (_error) {
     // JSON이 아닌 요청 본문
     return new Response(null, { status: status.BAD_REQUEST });
   }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
+  } catch (_error) {
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
 }

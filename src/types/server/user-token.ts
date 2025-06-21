@@ -1,3 +1,5 @@
+import isObject from "../is-object";
+
 export type UserTokenPair = {
   access: DecodedUserToken;
   refresh: DecodedUserToken;
@@ -17,8 +19,12 @@ export type UserTokenPayload = {
 };
 
 export function isUserTokenPayload(
-  tokenPayload: any,
+  tokenPayload: unknown,
 ): tokenPayload is UserTokenPayload {
+  if (!isObject(tokenPayload)) {
+    return false;
+  }
+
   const { iss, iat, sub, exp, jti } = tokenPayload ?? {};
 
   return (

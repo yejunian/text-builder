@@ -1,6 +1,6 @@
 import { selectUserWithPassword } from "@/repositories/users/select-user-password";
+import { UserTokenPair } from "@/types/server/user-token";
 import { UserLoginReqBody } from "@/types/user";
-import { UserTokenPair } from "@/utils/server/jwt";
 import { hashPassword } from "@/utils/server/password";
 
 import { issueUserTokens } from "../../utils/server/user-tokens/issue-user-tokens";

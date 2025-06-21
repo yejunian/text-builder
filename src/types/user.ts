@@ -1,12 +1,20 @@
 import { forbiddenNamePattern, hasControlCharacters } from "@/utils/strings";
 
+import isObject from "./is-object";
+
 export type UserCreationReqBody = {
   loginName: string;
   displayName?: string | null | undefined;
   password: string;
 };
 
-export function isUserCreationReqBody(obj: any): obj is UserCreationReqBody {
+export function isUserCreationReqBody(
+  obj: unknown,
+): obj is UserCreationReqBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
   if (!isLoginName(obj?.loginName)) {
     return false;
   }
@@ -22,9 +30,9 @@ export function isUserCreationReqBody(obj: any): obj is UserCreationReqBody {
   return true;
 }
 
-export function isLoginName(str: any): boolean {
+export function isLoginName(str: unknown): boolean {
   return (
-    str &&
+    !!str &&
     typeof str === "string" &&
     str.length >= 3 &&
     str.length <= 30 &&
@@ -32,7 +40,7 @@ export function isLoginName(str: any): boolean {
   );
 }
 
-export function isDisplayName(str: any): boolean {
+export function isDisplayName(str: unknown): boolean {
   return (
     str === null ||
     str === undefined ||
@@ -48,7 +56,11 @@ export type UserLoginReqBody = {
   password: string;
 };
 
-export function isUserLoginReqBody(obj: any): obj is UserLoginReqBody {
+export function isUserLoginReqBody(obj: unknown): obj is UserLoginReqBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
   if (!obj?.loginName || typeof obj.loginName !== "string") {
     return false;
   }
@@ -65,7 +77,11 @@ export type UserLoginResBody = {
   displayName: string | null;
 };
 
-export function isUserLoginResBody(obj: any): obj is UserLoginResBody {
+export function isUserLoginResBody(obj: unknown): obj is UserLoginResBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
   if (!obj?.loginName || typeof obj.loginName !== "string") {
     return false;
   }
