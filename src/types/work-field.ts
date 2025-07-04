@@ -25,7 +25,7 @@ export function isWorkFieldCreationReqBody(
     return false;
   }
 
-  if (!obj?.value || typeof obj.value !== "string") {
+  if (typeof obj.value !== "string") {
     return false;
   }
 
