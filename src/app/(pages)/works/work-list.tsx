@@ -3,8 +3,9 @@
 import { useContext, useEffect } from "react";
 import Link from "next/link";
 
-import { Calendar, ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight, PackageOpen, Plus } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -102,9 +103,21 @@ export default function WorkList() {
         ))}
       </div>
 
-      {works.length === 0 && (
-        <div className="py-12 text-center">
-          <p className="text-muted-foreground">텍스트 매크로가 없습니다.</p>
+      {works.length === 1 && (
+        <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
+          <PackageOpen
+            className="mx-auto opacity-50"
+            size={192}
+            strokeWidth={1.5}
+            absoluteStrokeWidth
+          />
+          <p>텍스트 매크로가 없습니다.</p>
+          <p>첫 번째 텍스트 매크로를 생성해 보세요.</p>
+          <Button className="mt-2" asChild size="lg">
+            <Link href={`/works/${loginName}/new`}>
+              <Plus className="h-4 w-4" />새 텍스트 매크로
+            </Link>
+          </Button>
         </div>
       )}
     </>

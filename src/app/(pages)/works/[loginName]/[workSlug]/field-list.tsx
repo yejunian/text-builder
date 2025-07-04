@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from "react";
 
-import { PlusIcon } from "lucide-react";
+import { Loader, PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WorkContext } from "@/contexts/work";
@@ -88,6 +88,19 @@ export default function FieldList({ workId }: Props) {
             onEdit={() => handleEditField(field.workFieldId)}
           />
         ),
+      )}
+
+      {workFields.length === 0 && (
+        <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
+          <Loader
+            className="mx-auto opacity-50"
+            size={192}
+            strokeWidth={1.5}
+            absoluteStrokeWidth
+          />
+          <p>매크로가 비었습니다.</p>
+          <p>아래 ‘새 필드 추가’ 버튼을 클릭하여 필드를 생성해 보세요.</p>
+        </div>
       )}
 
       <div className="my-6 border-t" />
