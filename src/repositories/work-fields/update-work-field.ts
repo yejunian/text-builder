@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { DatabaseError } from "pg";
 
 import { db } from "@/db";
@@ -10,34 +10,48 @@ export async function updateWorkField(
   workField: WorkFieldUpdate,
 ): Promise<WorkFieldUpdateResult> {
   try {
-    const result = await db
-      .update(workFieldsTable)
-      .set({
-        // displayOrder: workField.order,
-        fieldName: workField.name,
-        fieldType: workField.type,
-        fieldValue: workField.value,
-        isPublic: workField.isPublic,
-        updatedAt: sql`now()`,
-      })
-      .from(worksTable)
-      .innerJoin(
-        usersTable,
-        and(
-          eq(worksTable.workId, workField.parentId),
-          eq(worksTable.ownerId, workField.ownerId),
-          eq(usersTable.userId, workField.ownerId),
-          isNull(worksTable.deletedAt),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .where(
-        and(
-          eq(workFieldsTable.workFieldId, workField.workFieldId),
-          eq(workFieldsTable.parentId, workField.parentId),
-          isNull(workFieldsTable.deletedAt),
-        ),
-      );
+    const result = await db.transaction(async (tx) => {
+      const updatedAt = new Date().toISOString();
+
+      await tx
+        .update(worksTable)
+        .set({ updatedAt })
+        .where(
+          and(
+            eq(worksTable.ownerId, workField.ownerId),
+            eq(worksTable.workId, workField.parentId),
+          ),
+        );
+
+      return await tx
+        .update(workFieldsTable)
+        .set({
+          // displayOrder: workField.order,
+          fieldName: workField.name,
+          fieldType: workField.type,
+          fieldValue: workField.value,
+          isPublic: workField.isPublic,
+          updatedAt,
+        })
+        .from(worksTable)
+        .innerJoin(
+          usersTable,
+          and(
+            eq(worksTable.workId, workField.parentId),
+            eq(worksTable.ownerId, workField.ownerId),
+            eq(usersTable.userId, workField.ownerId),
+            isNull(worksTable.deletedAt),
+            isNull(usersTable.deletedAt),
+          ),
+        )
+        .where(
+          and(
+            eq(workFieldsTable.workFieldId, workField.workFieldId),
+            eq(workFieldsTable.parentId, workField.parentId),
+            isNull(workFieldsTable.deletedAt),
+          ),
+        );
+    });
 
     if (result.rowCount === 1) {
       return "ok";
