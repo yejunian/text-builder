@@ -3,7 +3,7 @@ import { DatabaseError } from "pg";
 import { v7 as uuid7 } from "uuid";
 
 import { db } from "@/db";
-import { workFieldsTable } from "@/db/schema";
+import { workFieldsTable, worksTable } from "@/db/schema";
 import { DbInsertFailure } from "@/types/server/db-result";
 import { WorkFieldCreationResBody } from "@/types/work-field";
 
@@ -13,8 +13,6 @@ export async function insertWorkField(
   try {
     const workFieldId = uuid7();
 
-    // TODO: Drizzle SQL<T> vs SQL.Aliaed<T> 타입 문제가 해결되었는지 확인하고,
-    //       두 쿼리를 하나로 합치기.
     const result = await db.transaction(async (tx) => {
       const displayOrderNext = await tx
         .select({
@@ -26,6 +24,11 @@ export async function insertWorkField(
         })
         .from(workFieldsTable)
         .where(eq(workFieldsTable.parentId, workFieldInsert.parentId));
+
+      await tx
+        .update(worksTable)
+        .set({ updatedAt: new Date().toISOString() })
+        .where(eq(worksTable.workId, workFieldInsert.parentId));
 
       const txResult = await tx.insert(workFieldsTable).values({
         ...workFieldInsert,
