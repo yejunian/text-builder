@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,12 +8,14 @@ import { WorkField } from "@/types/work-field";
 
 type Props = {
   field: WorkField;
+  hasCycle?: boolean | undefined;
   derivedFieldValue: string;
   onEdit: () => void;
 };
 
 export default function FieldDisplay({
   field,
+  hasCycle = false,
   derivedFieldValue,
   onEdit,
 }: Props) {
@@ -30,6 +33,8 @@ export default function FieldDisplay({
             {/* {!field.isPublic && (
               <LockIcon size={16} className="text-muted-foreground" />
             )} */}
+
+            {hasCycle && <Badge variant="destructive">순환 참조</Badge>}
           </div>
 
           <Button variant="outline" size="sm" onClick={onEdit}>

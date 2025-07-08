@@ -16,6 +16,7 @@ import { WorkField } from "@/types/work-field";
 
 type Props = {
   field: WorkField;
+  hasCycle?: boolean | undefined;
   onSave: (field: WorkField) => void;
   onCancel: (fieldId: string) => void;
   // onDelete: (fieldId: string) => void;
@@ -23,12 +24,12 @@ type Props = {
 
 export default function FieldEditor({
   field,
+  hasCycle = false,
   onSave,
   onCancel,
   // onDelete,
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
-
   // TODO: value 타입을 더 정확하게 지정해야 함.
   const handleChange = (key: keyof WorkField, value: string) => {
     setEditedField({ ...editedField, [key]: value });
@@ -49,7 +50,7 @@ export default function FieldEditor({
             autoFocus={!field.workFieldId}
             onChange={(e) => handleChange("fieldName", e.target.value)}
           />
-          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
+          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs leading-normal">
             <li>
               <span className="bg-muted rounded-xs px-1 py-px">
                 {`{{${editedField.fieldName}}}`}
@@ -85,13 +86,19 @@ export default function FieldEditor({
             autoFocus={!!field.workFieldId}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
           />
-          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
+          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs leading-normal">
             <li>
               <span className="bg-muted rounded-xs px-1 py-px">
                 {"{{필드 이름}}"}
               </span>
               (으)로 선행 필드의 값을 가져올 수 있습니다.
             </li>
+            {hasCycle && (
+              <li className="text-sm font-bold">
+                🚨 오류: 순환 참조가 해소되기 전까지 참조가 정상적으로 치환되지
+                않습니다.
+              </li>
+            )}
           </ul>
         </div>
 
