@@ -103,7 +103,7 @@ export default function WorkList() {
         ))}
       </div>
 
-      {works.length === 1 && (
+      {works.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
           <PackageOpen
             className="mx-auto opacity-50"
