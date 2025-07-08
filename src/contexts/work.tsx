@@ -41,18 +41,72 @@ export function WorkProvider({
   const [workFields, setWorkFields] = useState<WorkField[]>([]);
 
   const derivedFieldValues = useMemo<DerivedFieldValues>(() => {
-    const result: DerivedFieldValues = {};
+    const fields: { [fieldName: string]: WorkField } = {};
+    const partialOrders: { [fieldName: string]: Set<string> } = {};
+    const inDegrees: { [fieldName: string]: number } = {};
 
     for (let i = 0; i < workFields.length; i += 1) {
       const field = workFields[i];
-      const fieldName = field.fieldName;
+      const { fieldName, fieldValue } = field;
+      fields[fieldName] = field;
+
+      const fieldDeps = fieldValue
+        .matchAll(/\{\{(.+?)\}\}/g)
+        .map((execArray) => execArray[1]);
+      let fieldInDegree = 0;
+
+      for (const priorFieldName of fieldDeps) {
+        fieldInDegree += 1;
+
+        if (partialOrders[priorFieldName]) {
+          partialOrders[priorFieldName].add(fieldName);
+        } else {
+          partialOrders[priorFieldName] = new Set([fieldName]);
+        }
+      }
+
+      inDegrees[fieldName] = fieldInDegree;
+    }
+
+    const visitedQueue: string[] = [];
+
+    for (const fieldName in inDegrees) {
+      if (inDegrees[fieldName] === 0) {
+        visitedQueue.push(fieldName);
+      }
+    }
+
+    const order: string[] = [];
+
+    while (visitedQueue.length > 0) {
+      // 하나 dequeue해서 order에 push
+      const currentFieldName = visitedQueue.shift()!;
+      order.push(currentFieldName);
+
+      // 방문하지 않은 다음 정점 inDegree 감소하고, 결과가 0이면 그 정점 enqueue
+      if (partialOrders[currentFieldName] instanceof Set) {
+        for (const nextFieldName of partialOrders[currentFieldName]) {
+          inDegrees[nextFieldName] -= 1;
+
+          if (inDegrees[nextFieldName] === 0) {
+            visitedQueue.push(nextFieldName);
+          }
+        }
+      }
+    }
+
+    const result: DerivedFieldValues = {};
+
+    for (let i = 0; i < order.length; i += 1) {
+      const fieldName = order[i];
+      const field = fields[fieldName];
       result[fieldName] = field.fieldValue;
 
       for (let j = 0; j < i; j += 1) {
-        const priorField = workFields[j];
+        const priorFieldName = order[j];
         result[fieldName] = result[fieldName].replaceAll(
-          "{{" + priorField.fieldName + "}}",
-          result[priorField.fieldName],
+          "{{" + priorFieldName + "}}",
+          result[priorFieldName],
         );
       }
     }
