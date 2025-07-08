@@ -24,6 +24,7 @@ export const WorkContext = createContext<WorkContextValue>({
   workMetadata: { ...emptyWorkMetadata },
   workFields: [],
   derivedFieldValues: {},
+  cycledFieldNames: new Set(),
   fetchWorkWithFields: nop,
   createWorkField: nop,
   updateWorkField: nop,
@@ -39,6 +40,9 @@ export function WorkProvider({
   const [workMetadata, setWorkMetadata] =
     useState<WorkMetadata>(emptyWorkMetadata);
   const [workFields, setWorkFields] = useState<WorkField[]>([]);
+  const [cycledFieldNames, setCycledFieldNames] = useState<Set<string>>(
+    new Set(),
+  );
 
   const derivedFieldValues = useMemo<DerivedFieldValues>(() => {
     const fields: { [fieldName: string]: WorkField } = {};
@@ -95,6 +99,14 @@ export function WorkProvider({
       }
     }
 
+    const cycles: Set<string> = new Set();
+    for (const fieldName in inDegrees) {
+      if (inDegrees[fieldName] > 0) {
+        cycles.add(fieldName);
+      }
+    }
+    setCycledFieldNames(cycles);
+
     const result: DerivedFieldValues = {};
 
     for (let i = 0; i < order.length; i += 1) {
@@ -119,6 +131,7 @@ export function WorkProvider({
       workMetadata,
       workFields,
       derivedFieldValues,
+      cycledFieldNames,
 
       fetchWorkWithFields: async (workId?: string) => {
         try {
@@ -235,7 +248,7 @@ export function WorkProvider({
     }),
     // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [workMetadata, workFields, derivedFieldValues],
+    [workMetadata, workFields, derivedFieldValues, cycledFieldNames],
   );
 
   return <WorkContext value={contextValue}>{children}</WorkContext>;
@@ -245,6 +258,7 @@ type WorkContextValue = {
   workMetadata: WorkMetadata;
   workFields: WorkField[];
   derivedFieldValues: DerivedFieldValues;
+  cycledFieldNames: Set<string>;
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;

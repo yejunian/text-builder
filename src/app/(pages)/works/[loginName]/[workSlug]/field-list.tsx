@@ -19,6 +19,7 @@ export default function FieldList({ workId }: Props) {
   const {
     workFields,
     derivedFieldValues,
+    cycledFieldNames,
     fetchWorkWithFields,
     createWorkField,
     updateWorkField,
@@ -76,6 +77,7 @@ export default function FieldList({ workId }: Props) {
           <FieldEditor
             key={field.workFieldId}
             field={field}
+            hasCycle={cycledFieldNames.has(field.fieldName)}
             onSave={handleSaveField}
             onCancel={handleCancelEdit}
             // onDelete={handleDeleteField}
@@ -84,6 +86,7 @@ export default function FieldList({ workId }: Props) {
           <FieldDisplay
             key={field.workFieldId}
             field={field}
+            hasCycle={cycledFieldNames.has(field.fieldName)}
             derivedFieldValue={derivedFieldValues[field.fieldName]}
             onEdit={() => handleEditField(field.workFieldId)}
           />
