@@ -9,6 +9,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,8 +31,8 @@ export default function FieldEditor({
   // onDelete,
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
-  // TODO: value 타입을 더 정확하게 지정해야 함.
-  const handleChange = (key: keyof WorkField, value: string) => {
+
+  const handleChange = <T,>(key: keyof WorkField, value: T) => {
     setEditedField({ ...editedField, [key]: value });
   };
 
@@ -102,14 +103,14 @@ export default function FieldEditor({
           </ul>
         </div>
 
-        {/* <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 *:cursor-pointer">
           <Checkbox
             id="is-private"
             checked={!editedField.isPublic}
             onCheckedChange={(checked) => handleChange("isPublic", !checked)}
           />
           <Label htmlFor="is-private">편집 화면에서만 표시</Label>
-        </div> */}
+        </div>
       </CardContent>
 
       <CardFooter className="flex justify-between">
