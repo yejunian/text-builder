@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { selectWorkId } from "@/repositories/works/select-work-id";
 
-import FieldList from "./field-list";
+import FieldList from "../field-list";
 
 export const metadata: Metadata = {
   title: "텍스트 매크로 | 텍스트 빌더",
@@ -20,7 +20,7 @@ export default async function WorkPage({ params }: Props) {
     return redirect("/login");
   }
 
-  return <FieldList workId={workIds.workId} />;
+  return <FieldList workId={workIds.workId} editable />;
 }
 
 type Props = {

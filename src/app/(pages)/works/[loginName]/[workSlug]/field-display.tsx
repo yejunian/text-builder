@@ -10,6 +10,7 @@ type Props = {
   field: WorkField;
   hasCycle?: boolean | undefined;
   derivedFieldValue: string;
+  editable: boolean;
   onEdit: () => void;
 };
 
@@ -17,6 +18,7 @@ export default function FieldDisplay({
   field,
   hasCycle = false,
   derivedFieldValue,
+  editable,
   onEdit,
 }: Props) {
   return (
@@ -37,9 +39,11 @@ export default function FieldDisplay({
             {hasCycle && <Badge variant="destructive">순환 참조</Badge>}
           </div>
 
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            편집
-          </Button>
+          {editable && (
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              편집
+            </Button>
+          )}
         </div>
 
         <Textarea

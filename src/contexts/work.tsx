@@ -37,6 +37,7 @@ export function WorkProvider({
 }>) {
   const router = useRouter();
 
+  const [prevWorkId, setPrevWorkId] = useState("");
   const [workMetadata, setWorkMetadata] =
     useState<WorkMetadata>(emptyWorkMetadata);
   const [workFields, setWorkFields] = useState<WorkField[]>([]);
@@ -134,6 +135,10 @@ export function WorkProvider({
       cycledFieldNames,
 
       fetchWorkWithFields: async (workId?: string) => {
+        if (prevWorkId === workId) {
+          return;
+        }
+
         try {
           const response = await fetch(
             `/api/works/${workId || workMetadata.workId}`,
@@ -144,12 +149,14 @@ export function WorkProvider({
             router.push("/login");
             return;
           } else if (!response.ok) {
+            setPrevWorkId("");
             setWorkMetadata(emptyWorkMetadata);
             setWorkFields([]);
             return;
           }
 
           const { fields, ...nextWorkMetadata }: Work = await response.json();
+          setPrevWorkId(nextWorkMetadata.workId);
           setWorkMetadata(nextWorkMetadata);
           setWorkFields(fields);
         } catch (error) {
@@ -248,7 +255,13 @@ export function WorkProvider({
     }),
     // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [workMetadata, workFields, derivedFieldValues, cycledFieldNames],
+    [
+      prevWorkId,
+      workMetadata,
+      workFields,
+      derivedFieldValues,
+      cycledFieldNames,
+    ],
   );
 
   return <WorkContext value={contextValue}>{children}</WorkContext>;

@@ -1,10 +1,12 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
+import Link from "next/link";
 
 import { Loader, PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { UserContext } from "@/contexts/user";
 import { WorkContext } from "@/contexts/work";
 import { WorkField } from "@/types/work-field";
 
@@ -13,10 +15,13 @@ import FieldEditor from "./field-editor";
 
 type Props = {
   workId: string;
+  editable?: boolean | undefined;
 };
 
-export default function FieldList({ workId }: Props) {
+export default function FieldList({ workId, editable = false }: Props) {
+  const { loginName } = useContext(UserContext);
   const {
+    workMetadata,
     workFields,
     derivedFieldValues,
     cycledFieldNames,
@@ -24,10 +29,15 @@ export default function FieldList({ workId }: Props) {
     createWorkField,
     updateWorkField,
   } = useContext(WorkContext);
+
   const [editingFields, setEditingFields] = useState({
     data: new Set<string>(),
   });
   const [isAddOpen, setIsAddOpen] = useState(false);
+
+  const visibleWorkFields = workFields.filter(
+    (field) => editable || field.isPublic,
+  );
 
   useEffect(
     () => {
@@ -72,8 +82,33 @@ export default function FieldList({ workId }: Props) {
 
   return (
     <div className="space-y-4">
-      {workFields.map((field) =>
-        editingFields.data.has(field.workFieldId) ? (
+      <div className="flex justify-between">
+        <h1 className="text-xl font-bold">
+          {editable && "편집: "}
+          {workMetadata.title}
+        </h1>
+
+        {editable ? (
+          <Button variant="link" size="sm" asChild>
+            <Link href={`/works/${loginName}/${workMetadata.slug}`}>
+              보기 모드로 돌아가기
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant={visibleWorkFields.length === 0 ? "default" : "outline"}
+            size="sm"
+            asChild
+          >
+            <Link href={`/works/${loginName}/${workMetadata.slug}/edit`}>
+              편집
+            </Link>
+          </Button>
+        )}
+      </div>
+
+      {visibleWorkFields.map((field) =>
+        editable && editingFields.data.has(field.workFieldId) ? (
           <FieldEditor
             key={field.workFieldId}
             field={field}
@@ -88,54 +123,70 @@ export default function FieldList({ workId }: Props) {
             field={field}
             hasCycle={cycledFieldNames.has(field.fieldName)}
             derivedFieldValue={derivedFieldValues[field.fieldName]}
+            editable={editable}
             onEdit={() => handleEditField(field.workFieldId)}
           />
         ),
       )}
 
-      {workFields.length === 0 && (
+      {visibleWorkFields.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
-          <Loader
-            className="mx-auto opacity-50"
-            size={192}
-            strokeWidth={1.5}
-            absoluteStrokeWidth
-          />
+          {isAddOpen || (
+            <Loader
+              className="mx-auto opacity-50"
+              size={192}
+              strokeWidth={1.5}
+              absoluteStrokeWidth
+            />
+          )}
           <p>매크로가 비었습니다.</p>
-          <p>아래 ‘새 필드 추가’ 버튼을 클릭하여 필드를 생성해 보세요.</p>
+          {editable ? (
+            <p>
+              {isAddOpen
+                ? "아래 입력란을 채우고 ‘적용’ "
+                : "아래 ‘새 필드 추가’ "}
+              버튼을 눌러서 새 필드를 생성해 보세요.
+            </p>
+          ) : (
+            <p>오른쪽 위의 ‘편집’ 버튼을 눌러서 매크로를 편집해 보세요.</p>
+          )}
         </div>
       )}
 
-      <div className="my-6 border-t" />
+      {editable && (
+        <>
+          <div className="my-6 border-t" />
 
-      {isAddOpen ? (
-        <FieldEditor
-          field={{
-            workFieldId: "",
-            displayOrder:
-              1 +
-              workFields.reduce(
-                (acc, { displayOrder }) => Math.max(acc, displayOrder),
-                0,
-              ),
-            fieldName: "새 필드",
-            isPublic: true,
-            fieldType: "text",
-            fieldValue: "",
-            createdAt: "",
-            updatedAt: "",
-          }}
-          onSave={handleSaveNewField}
-          onCancel={() => setIsAddOpen(false)}
-        />
-      ) : (
-        <Button
-          variant="outline"
-          className="mb-64 flex w-full items-center justify-center gap-2 py-6"
-          onClick={handleAddField}
-        >
-          <PlusIcon size={16} /> 새 필드 추가
-        </Button>
+          {isAddOpen ? (
+            <FieldEditor
+              field={{
+                workFieldId: "",
+                displayOrder:
+                  1 +
+                  workFields.reduce(
+                    (acc, { displayOrder }) => Math.max(acc, displayOrder),
+                    0,
+                  ),
+                fieldName: "새 필드",
+                isPublic: true,
+                fieldType: "text",
+                fieldValue: "",
+                createdAt: "",
+                updatedAt: "",
+              }}
+              onSave={handleSaveNewField}
+              onCancel={() => setIsAddOpen(false)}
+            />
+          ) : (
+            <Button
+              variant={workFields.length === 0 ? "default" : "outline"}
+              className="mb-64 flex w-full items-center justify-center gap-2 py-6"
+              onClick={handleAddField}
+            >
+              <PlusIcon size={16} /> 새 필드 추가
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
