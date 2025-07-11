@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Check, Copy, FileJson } from "lucide-react";
+import { Check, Copy, FileJson, LucideLock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -84,9 +84,16 @@ export default function FieldDisplay({
               {field.fieldType}
             </Badge> */}
 
-            {/* {!field.isPublic && (
-              <LockIcon size={16} className="text-muted-foreground" />
-            )} */}
+            {!field.isPublic && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <LucideLock size={16} className="text-yellow-700" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>이 필드는 편집 모드에서만 표시합니다.</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             {hasCycle && <Badge variant="destructive">순환 참조</Badge>}
           </div>
