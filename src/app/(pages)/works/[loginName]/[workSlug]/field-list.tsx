@@ -35,6 +35,10 @@ export default function FieldList({ workId, editable = false }: Props) {
   });
   const [isAddOpen, setIsAddOpen] = useState(false);
 
+  const visibleWorkFields = workFields.filter(
+    (field) => editable || field.isPublic,
+  );
+
   useEffect(
     () => {
       fetchWorkWithFields(workId);
@@ -79,17 +83,20 @@ export default function FieldList({ workId, editable = false }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
-        <h1 className="text-xl font-bold">{workMetadata.title}</h1>
+        <h1 className="text-xl font-bold">
+          {editable && "편집: "}
+          {workMetadata.title}
+        </h1>
 
         {editable ? (
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="link" size="sm" asChild>
             <Link href={`/works/${loginName}/${workMetadata.slug}`}>
-              돌아가기
+              보기 모드로 돌아가기
             </Link>
           </Button>
         ) : (
           <Button
-            variant={workFields.length === 0 ? "default" : "outline"}
+            variant={visibleWorkFields.length === 0 ? "default" : "outline"}
             size="sm"
             asChild
           >
@@ -100,7 +107,7 @@ export default function FieldList({ workId, editable = false }: Props) {
         )}
       </div>
 
-      {workFields.map((field) =>
+      {visibleWorkFields.map((field) =>
         editable && editingFields.data.has(field.workFieldId) ? (
           <FieldEditor
             key={field.workFieldId}
@@ -122,7 +129,7 @@ export default function FieldList({ workId, editable = false }: Props) {
         ),
       )}
 
-      {workFields.length === 0 && (
+      {visibleWorkFields.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
           {isAddOpen || (
             <Loader
