@@ -124,7 +124,7 @@ export default function FieldEditor({
           <Button variant="outline" onClick={() => onCancel(field.workFieldId)}>
             취소
           </Button>
-          <Button onClick={() => onSave(editedField)}>확인</Button>
+          <Button onClick={() => onSave(editedField)}>적용</Button>
         </div>
       </CardFooter>
     </Card>
