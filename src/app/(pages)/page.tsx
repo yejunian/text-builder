@@ -1,6 +1,12 @@
 import Link from "next/link";
 
-import { ArrowRight, ClipboardPenLine, ShieldCheck, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  ClipboardPenLine,
+  FlaskConical,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +17,11 @@ export default function RootPage() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center space-x-3">
             <h1 className="text-foreground text-sm font-medium">
-              Text Builder
+              Text Builder{" "}
+              <sup className="text-xs font-medium text-violet-600">
+                <FlaskConical size="12" strokeWidth="2.5" className="inline" />
+                beta
+              </sup>
             </h1>
           </div>
 

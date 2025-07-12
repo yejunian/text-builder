@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import status from "http-status";
-import { FolderOpen, LogOut, User } from "lucide-react";
+import { FlaskConical, FolderOpen, LogOut, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -53,9 +53,20 @@ export default function Header() {
 
           {/* 브레드크럼(예정) */}
           <nav className="flex items-center space-x-1 text-sm">
-            <Button asChild variant="ghost" size="sm" className="h-auto p-1">
-              <Link href="/works">Text Builder</Link>
-            </Button>
+            <div>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="px-2 font-medium"
+              >
+                <Link href="/works">Text Builder</Link>
+              </Button>{" "}
+              <sup className="-ml-2 text-xs font-medium text-violet-600">
+                <FlaskConical strokeWidth="2.6" className="inline size-3" />
+                beta
+              </sup>
+            </div>
 
             {/* 데스크톱에서는 전체 브레드크럼 표시 */}
             {/* <div className="hidden items-center space-x-1 md:flex">

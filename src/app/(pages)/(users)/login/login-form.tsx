@@ -5,6 +5,8 @@ import { FormEvent, useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { FlaskConical } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +53,13 @@ export default function LoginForm() {
     <form className="p-6 md:p-8" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center text-center">
-          <h1 className="text-2xl font-bold">Text Builder</h1>
+          <h1 className="text-2xl font-bold">
+            Text Builder{" "}
+            <sup className="text-sm font-medium text-violet-700">
+              <FlaskConical size="12" strokeWidth="2.5" className="inline" />
+              beta
+            </sup>
+          </h1>
           <p className="text-muted-foreground text-sm text-balance">
             로그인해서 텍스트 매크로를 만들고 활용해 보세요
           </p>
