@@ -14,7 +14,11 @@ export async function readAllWorks(
   }
 
   return {
-    allWorks,
+    allWorks: allWorks.map((work) => ({
+      ...work,
+      createdAt: work.createdAt.toISOString(),
+      updatedAt: work.updatedAt.toISOString(),
+    })),
   };
 }
 

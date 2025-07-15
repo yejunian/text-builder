@@ -1,5 +1,6 @@
 import { forbiddenNamePattern } from "@/utils/strings";
 
+import { UpsertionTimestamps } from "./crud-timestamp";
 import isObject from "./is-object";
 import { WorkField } from "./work-field";
 
@@ -49,13 +50,11 @@ export type Work = WorkMetadata & {
   fields: WorkField[];
 };
 
-export type WorkMetadata = {
+export type WorkMetadata = UpsertionTimestamps & {
   workId: string;
   ownerId: string;
   slug: string;
   title: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type AllWorksResBody = {

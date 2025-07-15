@@ -25,11 +25,16 @@ export async function readWork(workRead: WorkRead): Promise<ReadWorkResult> {
 
   return {
     ...work,
+    createdAt: work.createdAt.toISOString(),
+    updatedAt: work.updatedAt.toISOString(),
+
     fields: workFields.map<WorkField>((record) => {
       const fieldTypeName = workFieldTypeIdToName[record.fieldType];
       return {
         ...record,
         fieldType: fieldTypeName === "unknown" ? "text" : fieldTypeName,
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString(),
       };
     }),
   };
