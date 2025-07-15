@@ -3,9 +3,14 @@
 import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { Loader, PlusIcon } from "lucide-react";
+import { Eye, Loader, PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { UserContext } from "@/contexts/user";
 import { WorkContext } from "@/contexts/work";
 import { WorkField } from "@/types/work-field";
@@ -88,23 +93,42 @@ export default function FieldList({ workId, editable = false }: Props) {
           {workMetadata.title}
         </h1>
 
-        {editable ? (
-          <Button variant="link" size="sm" asChild>
-            <Link href={`/works/${loginName}/${workMetadata.slug}`}>
-              보기 모드로 돌아가기
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            variant={visibleWorkFields.length === 0 ? "default" : "outline"}
-            size="sm"
-            asChild
-          >
-            <Link href={`/works/${loginName}/${workMetadata.slug}/edit`}>
-              편집
-            </Link>
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {editable ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button variant="link" size="sm" asChild>
+                    <Link href={`/works/${loginName}/${workMetadata.slug}`}>
+                      <Eye /> 보기 모드로
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>편집을 중단하고 보기 모드로 돌아갑니다.</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Button
+                variant={workFields.length === 0 ? "default" : "outline"}
+                size="sm"
+                onClick={handleAddField}
+              >
+                <PlusIcon size={16} /> 새 필드
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant={visibleWorkFields.length === 0 ? "default" : "outline"}
+              size="sm"
+              asChild
+            >
+              <Link href={`/works/${loginName}/${workMetadata.slug}/edit`}>
+                편집
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {visibleWorkFields.map((field) =>
@@ -144,7 +168,7 @@ export default function FieldList({ workId, editable = false }: Props) {
             <p>
               {isAddOpen
                 ? "아래 입력란을 채우고 ‘적용’ "
-                : "아래 ‘새 필드 추가’ "}
+                : "위 또는 아래의 ‘새 필드 추가’ "}
               버튼을 눌러서 새 필드를 생성해 보세요.
             </p>
           ) : (
