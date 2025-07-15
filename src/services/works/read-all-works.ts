@@ -3,6 +3,7 @@ import {
   selectAllWorks,
 } from "@/repositories/works/select-all-works";
 import { AllWorksRead, WorkMetadata } from "@/types/work";
+import { upsertionTimestampsFromIso } from "@/utils/date";
 
 export async function readAllWorks(
   worksRead: AllWorksRead,
@@ -14,7 +15,10 @@ export async function readAllWorks(
   }
 
   return {
-    allWorks,
+    allWorks: allWorks.map((work) => ({
+      ...work,
+      ...upsertionTimestampsFromIso(work),
+    })),
   };
 }
 

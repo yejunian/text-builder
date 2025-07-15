@@ -11,7 +11,7 @@ export async function updateWorkField(
 ): Promise<WorkFieldUpdateResult> {
   try {
     const result = await db.transaction(async (tx) => {
-      const updatedAt = new Date().toISOString();
+      const updatedAt = new Date();
 
       await tx
         .update(worksTable)

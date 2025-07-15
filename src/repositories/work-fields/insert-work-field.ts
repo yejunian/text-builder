@@ -27,7 +27,7 @@ export async function insertWorkField(
 
       await tx
         .update(worksTable)
-        .set({ updatedAt: new Date().toISOString() })
+        .set({ updatedAt: new Date() })
         .where(eq(worksTable.workId, workFieldInsert.parentId));
 
       const txResult = await tx.insert(workFieldsTable).values({
