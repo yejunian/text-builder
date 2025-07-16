@@ -25,7 +25,7 @@ export async function selectWorkId(
         ),
       );
 
-    return selected[0] || "not-found";
+    return selected[0] || null;
   } catch (error) {
     console.error(error);
     return "unknown";
@@ -39,4 +39,4 @@ type WorkIdSelectSuccess = Pick<
   "workId" | "ownerId"
 >;
 
-type WorkIdSelectFailure = "not-found" | "unknown";
+type WorkIdSelectFailure = "unknown" | null;

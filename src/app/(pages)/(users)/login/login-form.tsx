@@ -3,7 +3,7 @@
 import type React from "react";
 import { FormEvent, useContext, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { FlaskConical } from "lucide-react";
 
@@ -14,7 +14,11 @@ import { UserContext } from "@/contexts/user";
 import { UserLoginResBody } from "@/types/user";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+
   const router = useRouter();
+
   const { login } = useContext(UserContext);
 
   const [loginName, setLoginName] = useState("");
@@ -46,7 +50,12 @@ export default function LoginForm() {
 
     const result: UserLoginResBody = await response.json();
     login(result);
-    router.push("/works");
+
+    if (nextPath) {
+      router.push(nextPath);
+    } else {
+      router.push("/works");
+    }
   };
 
   return (

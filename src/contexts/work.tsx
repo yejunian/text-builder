@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Work, WorkMetadata } from "@/types/work";
 import {
@@ -9,6 +9,7 @@ import {
   WorkFieldCreationReqBody,
   WorkFieldCreationResBody,
 } from "@/types/work-field";
+import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
 
 const emptyWorkMetadata = {
@@ -36,6 +37,7 @@ export function WorkProvider({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [prevWorkId, setPrevWorkId] = useState("");
   const [workMetadata, setWorkMetadata] =
@@ -146,7 +148,7 @@ export function WorkProvider({
 
           if (response.status === 401) {
             alert("로그인이 필요합니다.");
-            router.push("/login");
+            router.push(getLoginUrl(pathname));
             return;
           } else if (!response.ok) {
             setPrevWorkId("");
@@ -183,7 +185,7 @@ export function WorkProvider({
 
           if (response.status === 401) {
             alert("로그인이 필요합니다.");
-            router.push("/login");
+            router.push(getLoginUrl(pathname));
             return false;
           } else if (!response.ok) {
             alert("필드 생성에 실패했습니다.");
@@ -227,7 +229,7 @@ export function WorkProvider({
 
         if (response.status === 401) {
           alert("로그인이 필요합니다.");
-          router.push("/login");
+          router.push(getLoginUrl(pathname));
           return false;
         } else if (!response.ok) {
           alert(`${field.fieldName} 필드를 변경하는 데 실패했습니다.`);

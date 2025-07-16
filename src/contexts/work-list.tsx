@@ -1,9 +1,10 @@
 "use client";
 
 import React, { createContext, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { AllWorksResBody, WorkMetadata } from "@/types/work";
+import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
 
 export const WorkListContext = createContext<WorkListContextValue>({
@@ -17,6 +18,7 @@ export function WorkListProvider({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [works, setWorks] = useState<WorkMetadata[]>([]);
 
@@ -30,7 +32,7 @@ export function WorkListProvider({
 
           if (response.status === 401) {
             alert("로그인이 필요합니다.");
-            router.push("/login");
+            router.push(getLoginUrl(pathname));
             return;
           } else if (!response.ok) {
             return;

@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import MoveToLogin from "@/components/move-to-login";
 import { selectWorkId } from "@/repositories/works/select-work-id";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 import FieldList from "./field-list";
 
@@ -10,14 +12,23 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkPage({ params }: Props) {
+  const userTokens = await userTokenUtils.serverComponent();
+
+  if (!userTokens) {
+    return <MoveToLogin />;
+  }
+
   const { loginName, workSlug } = await params;
   const workIds = await selectWorkId(loginName, workSlug);
 
-  // TODO: 쿠키의 로그인 상태에 따라 다르게 이동
-  // - 로그인을 했다면 -> 목록으로 이동
-  // - 로그인을 안 했다면 -> 로그인 페이지로 이동
+  const loginUserId = userTokens.access.payload.sub;
+
   if (typeof workIds === "string") {
-    return redirect("/login");
+    // 아마도 unknown
+    return redirect("/works");
+  } else if (workIds === null || workIds.ownerId !== loginUserId) {
+    // TODO: 403 응답 (원래는 404와 구분되어야 하지만, 그렇게 하면 현재 상황에서는 남의 계정에 특정 work가 존재하는지 파악 가능)
+    return redirect("/works");
   }
 
   return <FieldList workId={workIds.workId} />;
