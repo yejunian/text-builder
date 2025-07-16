@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import status from "http-status";
 
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function GET(request: NextRequest) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.CONFLICT });

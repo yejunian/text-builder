@@ -5,11 +5,11 @@ import status from "http-status";
 import { createWork } from "@/services/works/create-work";
 import { readAllWorks } from "@/services/works/read-all-works";
 import { isWorkCreationReqBody } from "@/types/work";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 계정이 소유한 작업 목록 조회
 export async function GET(request: NextRequest) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
 // 계정 소유의 새 작업 생성
 export async function POST(request: NextRequest) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });

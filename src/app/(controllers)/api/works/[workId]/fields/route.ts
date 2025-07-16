@@ -4,11 +4,11 @@ import status from "http-status";
 
 import { createWorkField } from "@/services/work-fields/create-work-fields";
 import { isWorkFieldCreationReqBody } from "@/types/work-field";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 새 작업 필드 생성
 export async function POST(request: NextRequest, { params }: PostContext) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });

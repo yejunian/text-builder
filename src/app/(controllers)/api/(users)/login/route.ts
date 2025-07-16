@@ -6,10 +6,10 @@ import status from "http-status";
 import { loginUser } from "@/services/users/login-user";
 import { isUserLoginReqBody, UserLoginResBody } from "@/types/user";
 import { jwtExpToDateValue } from "@/utils/server/jwt";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function POST(request: NextRequest) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (userTokens) {
     return new Response(null, { status: status.CONFLICT });

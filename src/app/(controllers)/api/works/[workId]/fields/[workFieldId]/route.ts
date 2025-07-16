@@ -4,10 +4,10 @@ import status from "http-status";
 
 import { modifyWorkField } from "@/services/work-fields/modify-work-field";
 import { isWorkFieldCreationReqBody } from "@/types/work-field";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function PUT(request: NextRequest, { params }: PutContext) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });

@@ -3,11 +3,11 @@ import { NextRequest } from "next/server";
 import status from "http-status";
 
 import { readWork } from "@/services/works/read-work";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 계정이 소유한 작업과 작업이 포함하는 필드 조회
 export async function GET(request: NextRequest, { params }: GetContext) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (!userTokens) {
     return new Response(null, { status: status.UNAUTHORIZED });
