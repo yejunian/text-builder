@@ -4,10 +4,10 @@ import status from "http-status";
 
 import { createUser } from "@/services/users/create-user";
 import { isUserCreationReqBody } from "@/types/user";
-import { getUserTokens } from "@/utils/server/user-tokens/get-user-tokens";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function POST(request: NextRequest) {
-  const userTokens = await getUserTokens(request);
+  const userTokens = userTokenUtils.routeHandler(request);
 
   if (userTokens) {
     return new Response(null, { status: status.CONFLICT });

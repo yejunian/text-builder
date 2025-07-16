@@ -2,16 +2,14 @@ import { NextRequest } from "next/server";
 
 import status from "http-status";
 
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
+
 export async function GET(request: NextRequest) {
-  if (request.cookies.get("accessToken")?.value) {
-    return Response.redirect(
-      new URL("/works", request.url),
-      status.TEMPORARY_REDIRECT,
-    );
-  } else {
-    return Response.redirect(
-      new URL("/login", request.url),
-      status.TEMPORARY_REDIRECT,
-    );
-  }
+  const userTokens = userTokenUtils.routeHandler(request);
+  const targetPath = userTokens ? "/works" : "/login";
+
+  return Response.redirect(
+    new URL(targetPath, request.url),
+    status.TEMPORARY_REDIRECT,
+  );
 }

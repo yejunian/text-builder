@@ -1,9 +1,8 @@
-import { decodeJwt } from "jose";
-
-import { isUserTokenPayload, UserTokenPair } from "@/types/server/user-token";
+import { UserTokenPair } from "@/types/server/user-token";
 import { createJsonWebToken } from "@/utils/server/jwt";
 
 import { ENV_SECRET_ACCESS_TOKEN, ENV_SECRET_REFRESH_TOKEN } from "../env";
+import { decodeUserTokens } from "./decode-user-tokens";
 
 export async function issueUserTokens(
   userId: string,
@@ -11,27 +10,7 @@ export async function issueUserTokens(
   const accessToken = await createUserAccessToken(userId);
   const refreshToken = await createUserRefreshToken(userId);
 
-  if (!accessToken || !refreshToken) {
-    return null;
-  }
-
-  const atPayload = decodeJwt(accessToken);
-  const rtPayload = decodeJwt(refreshToken);
-
-  if (!isUserTokenPayload(atPayload) || !isUserTokenPayload(rtPayload)) {
-    return null;
-  }
-
-  return {
-    access: {
-      token: accessToken,
-      payload: atPayload,
-    },
-    refresh: {
-      token: refreshToken,
-      payload: rtPayload,
-    },
-  };
+  return decodeUserTokens(accessToken, refreshToken);
 }
 
 async function createUserAccessToken(subject: string): Promise<string | null> {
