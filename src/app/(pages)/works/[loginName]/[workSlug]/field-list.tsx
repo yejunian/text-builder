@@ -3,10 +3,16 @@
 import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { Eye, Loader, Pencil, PlusIcon } from "lucide-react";
+import { Ellipsis, Eye, Loader, Pencil, PlusIcon, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +24,7 @@ import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
 import FieldEditor from "./field-editor";
+import WorkMetadataDialog from "./work-metadata-dialog";
 
 type Props = {
   workId: string;
@@ -32,8 +39,10 @@ export default function FieldList({ workId, editable = false }: Props) {
     derivedFieldValues,
     cycledFieldNames,
     fetchWorkWithFields,
+    deleteWork,
     createWorkField,
     updateWorkField,
+    deleteWorkField,
   } = useContext(WorkContext);
 
   const [editingFields, setEditingFields] = useState({
@@ -74,6 +83,19 @@ export default function FieldList({ workId, editable = false }: Props) {
     setEditingFields({ ...editingFields });
   };
 
+  const handleDeleteField = async (id: string) => {
+    if (!confirm("이 필드를 정말로 삭제할까요?")) {
+      return;
+    }
+
+    const success = await deleteWorkField(id);
+
+    if (success) {
+      editingFields.data.delete(id);
+      setEditingFields({ ...editingFields });
+    }
+  };
+
   const handleSaveNewField = async (field: WorkField) => {
     const success = await createWorkField(field);
 
@@ -86,6 +108,14 @@ export default function FieldList({ workId, editable = false }: Props) {
     setIsAddOpen(true);
   };
 
+  const handleDelete = () => {
+    if (
+      confirm(`현재 편집 중인 매크로 "${workMetadata.title}"을(를) 삭제할까요?`)
+    ) {
+      deleteWork(workId);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -95,7 +125,10 @@ export default function FieldList({ workId, editable = false }: Props) {
               편집 중
             </Badge>
           )}
-          <h1 className="text-xl font-bold">{workMetadata.title}</h1>
+          <h1>
+            <span className="text-xl font-bold">{workMetadata.title}</span>
+            <WorkMetadataDialog />
+          </h1>
         </div>
 
         <div className="flex justify-end gap-2">
@@ -121,6 +154,30 @@ export default function FieldList({ workId, editable = false }: Props) {
               >
                 <PlusIcon size={16} /> 새 필드
               </Button>
+
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Ellipsis />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>동작 더 보기</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 /> 매크로 삭제
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button
@@ -144,7 +201,7 @@ export default function FieldList({ workId, editable = false }: Props) {
             hasCycle={cycledFieldNames.has(field.fieldName)}
             onSave={handleSaveField}
             onCancel={handleCancelEdit}
-            // onDelete={handleDeleteField}
+            onDelete={handleDeleteField}
           />
         ) : (
           <FieldDisplay

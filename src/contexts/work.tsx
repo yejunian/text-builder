@@ -1,9 +1,11 @@
 "use client";
 
-import React, { createContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { Work, WorkMetadata } from "@/types/work";
+import status from "http-status";
+
+import { Work, WorkMetadata, WorkUpsertionReqBody } from "@/types/work";
 import {
   WorkField,
   WorkFieldCreationReqBody,
@@ -11,6 +13,8 @@ import {
 } from "@/types/work-field";
 import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
+
+import { UserContext } from "./user";
 
 const emptyWorkMetadata = {
   workId: "",
@@ -27,8 +31,11 @@ export const WorkContext = createContext<WorkContextValue>({
   derivedFieldValues: {},
   cycledFieldNames: new Set(),
   fetchWorkWithFields: nop,
+  updateWork: nop,
+  deleteWork: nop,
   createWorkField: nop,
   updateWorkField: nop,
+  deleteWorkField: nop,
 });
 
 export function WorkProvider({
@@ -38,6 +45,8 @@ export function WorkProvider({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const { loginName } = useContext(UserContext);
 
   const [prevWorkId, setPrevWorkId] = useState("");
   const [workMetadata, setWorkMetadata] =
@@ -146,7 +155,7 @@ export function WorkProvider({
             `/api/works/${workId || workMetadata.workId}`,
           );
 
-          if (response.status === 401) {
+          if (response.status === status.UNAUTHORIZED) {
             alert("로그인이 필요합니다.");
             router.push(getLoginUrl(pathname));
             return;
@@ -166,6 +175,54 @@ export function WorkProvider({
         }
       },
 
+      updateWork: async (workId: string, body: WorkUpsertionReqBody) => {
+        const response = await fetch(`/api/works/${workId}`, {
+          method: "put",
+          body: JSON.stringify(body),
+        });
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return;
+        } else if (!response.ok) {
+          alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`);
+          return;
+        }
+
+        const nextWorkMetadata = {
+          ...workMetadata,
+          title: workMetadata.title,
+          slug: workMetadata.slug,
+        };
+
+        setWorkMetadata(nextWorkMetadata);
+
+        if (body.slug !== workMetadata.slug) {
+          router.replace(`/works/${loginName}/${body.slug}`);
+        }
+
+        alert("매크로 정보를 수정했습니다.");
+      },
+
+      deleteWork: async (workId: string) => {
+        const response = await fetch(`/api/works/${workId}`, {
+          method: "delete",
+        });
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return;
+        } else if (!response.ok) {
+          alert(`"${workMetadata.title}" 매크로를 삭제할 수 없습니다.`);
+          return;
+        }
+
+        alert(`"${workMetadata.title}" 매크로를 삭제했습니다.`);
+        router.push("/works");
+      },
+
       createWorkField: async (field: WorkField) => {
         try {
           const requestbody: WorkFieldCreationReqBody = {
@@ -183,7 +240,7 @@ export function WorkProvider({
             },
           );
 
-          if (response.status === 401) {
+          if (response.status === status.UNAUTHORIZED) {
             alert("로그인이 필요합니다.");
             router.push(getLoginUrl(pathname));
             return false;
@@ -227,7 +284,7 @@ export function WorkProvider({
           },
         );
 
-        if (response.status === 401) {
+        if (response.status === status.UNAUTHORIZED) {
           alert("로그인이 필요합니다.");
           router.push(getLoginUrl(pathname));
           return false;
@@ -254,6 +311,32 @@ export function WorkProvider({
 
         return true;
       },
+
+      deleteWorkField: async (workFieldId: string) => {
+        const response = await fetch(
+          `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
+          {
+            method: "delete",
+          },
+        );
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return false;
+        } else if (!response.ok) {
+          alert("필드를 삭제하는 데 실패했습니다.");
+          return false;
+        }
+
+        const nextWorkFields = workFields.filter(
+          (value) => value.workFieldId !== workFieldId,
+        );
+
+        setWorkFields(nextWorkFields);
+
+        return true;
+      },
     }),
     // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -263,6 +346,7 @@ export function WorkProvider({
       workFields,
       derivedFieldValues,
       cycledFieldNames,
+      pathname,
     ],
   );
 
@@ -276,8 +360,14 @@ type WorkContextValue = {
   cycledFieldNames: Set<string>;
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
+  updateWork: (
+    workId: string,
+    body: WorkUpsertionReqBody,
+  ) => void | Promise<void>;
+  deleteWork: (workId: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
+  deleteWorkField: (workFieldId: string) => void | Promise<boolean>;
 };
 
 type DerivedFieldValues = {

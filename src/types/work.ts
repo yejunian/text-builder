@@ -4,14 +4,14 @@ import { UpsertionTimestamps } from "./crud-timestamp";
 import isObject from "./is-object";
 import { WorkField } from "./work-field";
 
-export type WorkCreationReqBody = {
+export type WorkUpsertionReqBody = {
   slug: string;
   title: string;
 };
 
-export function isWorkCreationReqBody(
+export function isWorkUpsertionReqBody(
   obj: unknown,
-): obj is WorkCreationReqBody {
+): obj is WorkUpsertionReqBody {
   if (!isObject(obj)) {
     return false;
   }

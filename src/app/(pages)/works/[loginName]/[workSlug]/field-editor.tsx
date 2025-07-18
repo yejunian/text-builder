@@ -28,7 +28,7 @@ type Props = {
   hasCycle?: boolean | undefined;
   onSave: (field: WorkField) => void;
   onCancel: (fieldId: string) => void;
-  // onDelete: (fieldId: string) => void;
+  onDelete?: (fieldId: string) => void;
 };
 
 export default function FieldEditor({
@@ -36,7 +36,7 @@ export default function FieldEditor({
   hasCycle = false,
   onSave,
   onCancel,
-  // onDelete,
+  onDelete,
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
   const [refCopiedTimeoutId, setRefCopiedTimeoutId] = useState(-1);
@@ -209,10 +209,14 @@ export default function FieldEditor({
 
       <CardFooter className="flex justify-between">
         <div className="space-x-2">
-          {/* TODO: API 처리 결과로 onDelete 호출 */}
-          {/* <Button variant="outline" onClick={() => onDelete(field.workFieldId)}>
-            삭제
-          </Button> */}
+          {onDelete ? (
+            <Button
+              variant="outline"
+              onClick={() => onDelete(field.workFieldId)}
+            >
+              삭제
+            </Button>
+          ) : null}
         </div>
 
         <div className="space-x-2">
