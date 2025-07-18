@@ -48,6 +48,7 @@ export default function FieldList({ workId, editable = false }: Props) {
     deleteWork,
     createWorkField,
     updateWorkField,
+    deleteWorkField,
   } = useContext(WorkContext);
 
   const [editingFields, setEditingFields] = useState({
@@ -86,6 +87,19 @@ export default function FieldList({ workId, editable = false }: Props) {
   const handleCancelEdit = (id: string) => {
     editingFields.data.delete(id);
     setEditingFields({ ...editingFields });
+  };
+
+  const handleDeleteField = async (id: string) => {
+    if (!confirm("이 필드를 정말로 삭제할까요?")) {
+      return;
+    }
+
+    const success = await deleteWorkField(id);
+
+    if (success) {
+      editingFields.data.delete(id);
+      setEditingFields({ ...editingFields });
+    }
   };
 
   const handleSaveNewField = async (field: WorkField) => {
@@ -190,7 +204,7 @@ export default function FieldList({ workId, editable = false }: Props) {
             hasCycle={cycledFieldNames.has(field.fieldName)}
             onSave={handleSaveField}
             onCancel={handleCancelEdit}
-            // onDelete={handleDeleteField}
+            onDelete={handleDeleteField}
           />
         ) : (
           <FieldDisplay

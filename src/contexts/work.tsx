@@ -29,9 +29,10 @@ export const WorkContext = createContext<WorkContextValue>({
   derivedFieldValues: {},
   cycledFieldNames: new Set(),
   fetchWorkWithFields: nop,
+  deleteWork: nop,
   createWorkField: nop,
   updateWorkField: nop,
-  deleteWork: nop,
+  deleteWorkField: nop,
 });
 
 export function WorkProvider({
@@ -275,6 +276,32 @@ export function WorkProvider({
 
         return true;
       },
+
+      deleteWorkField: async (workFieldId: string) => {
+        const response = await fetch(
+          `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
+          {
+            method: "delete",
+          },
+        );
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return false;
+        } else if (!response.ok) {
+          alert("필드를 삭제하는 데 실패했습니다.");
+          return false;
+        }
+
+        const nextWorkFields = workFields.filter(
+          (value) => value.workFieldId !== workFieldId,
+        );
+
+        setWorkFields(nextWorkFields);
+
+        return true;
+      },
     }),
     // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -301,6 +328,7 @@ type WorkContextValue = {
   deleteWork: (workId: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
+  deleteWorkField: (workFieldId: string) => void | Promise<boolean>;
 };
 
 type DerivedFieldValues = {
