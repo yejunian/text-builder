@@ -3,6 +3,8 @@
 import React, { createContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import status from "http-status";
+
 import { AllWorksResBody, WorkMetadata } from "@/types/work";
 import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
@@ -30,7 +32,7 @@ export function WorkListProvider({
         try {
           const response = await fetch("/api/works");
 
-          if (response.status === 401) {
+          if (response.status === status.UNAUTHORIZED) {
             alert("로그인이 필요합니다.");
             router.push(getLoginUrl(pathname));
             return;

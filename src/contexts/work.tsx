@@ -3,6 +3,8 @@
 import React, { createContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import status from "http-status";
+
 import { Work, WorkMetadata } from "@/types/work";
 import {
   WorkField,
@@ -147,7 +149,7 @@ export function WorkProvider({
             `/api/works/${workId || workMetadata.workId}`,
           );
 
-          if (response.status === 401) {
+          if (response.status === status.UNAUTHORIZED) {
             alert("로그인이 필요합니다.");
             router.push(getLoginUrl(pathname));
             return;
@@ -172,7 +174,7 @@ export function WorkProvider({
           method: "delete",
         });
 
-        if (response.status === 401) {
+        if (response.status === status.UNAUTHORIZED) {
           alert("로그인이 필요합니다.");
           router.push(getLoginUrl(pathname));
           return;
@@ -202,7 +204,7 @@ export function WorkProvider({
             },
           );
 
-          if (response.status === 401) {
+          if (response.status === status.UNAUTHORIZED) {
             alert("로그인이 필요합니다.");
             router.push(getLoginUrl(pathname));
             return false;
@@ -246,7 +248,7 @@ export function WorkProvider({
           },
         );
 
-        if (response.status === 401) {
+        if (response.status === status.UNAUTHORIZED) {
           alert("로그인이 필요합니다.");
           router.push(getLoginUrl(pathname));
           return false;

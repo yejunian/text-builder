@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import status from "http-status";
 import { FlaskConical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export default function SignupForm() {
       body: JSON.stringify(userCreationReqBody),
     });
 
-    if (response.status === 409) {
+    if (response.status === status.CONFLICT) {
       alert("이미 로그인했습니다.");
       router.push("/works");
       return;
