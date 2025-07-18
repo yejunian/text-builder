@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import status from "http-status";
 
 import { modifyWorkField } from "@/services/work-fields/modify-work-field";
+import { removeWorkField } from "@/services/work-fields/remove-work-field";
 import { isWorkFieldCreationReqBody } from "@/types/work-field";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
@@ -50,6 +51,27 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
     // result === "unknown"
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
+}
+
+export async function DELETE(request: NextRequest, { params }: PutContext) {
+  const userTokens = userTokenUtils.routeHandler(request);
+
+  if (!userTokens) {
+    return new Response(null, { status: status.UNAUTHORIZED });
+  }
+
+  const { workId, workFieldId } = await params;
+
+  const result = await removeWorkField({
+    ownerId: userTokens.access.payload.sub,
+    parentId: workId,
+    workFieldId,
+  });
+
+  // TODO: 실패 상황 세분화
+  return result
+    ? new Response(null, { status: status.OK })
+    : new Response(null, { status: status.NOT_FOUND });
 }
 
 type PutContext = {
