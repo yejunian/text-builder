@@ -29,6 +29,7 @@ export const WorkContext = createContext<WorkContextValue>({
   fetchWorkWithFields: nop,
   createWorkField: nop,
   updateWorkField: nop,
+  deleteWork: nop,
 });
 
 export function WorkProvider({
@@ -166,6 +167,24 @@ export function WorkProvider({
         }
       },
 
+      deleteWork: async (workId: string) => {
+        const response = await fetch(`/api/works/${workId}`, {
+          method: "delete",
+        });
+
+        if (response.status === 401) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return;
+        } else if (!response.ok) {
+          alert(`"${workMetadata.title}" 매크로를 삭제할 수 없습니다.`);
+          return;
+        }
+
+        alert(`"${workMetadata.title}" 매크로를 삭제했습니다.`);
+        router.push("/works");
+      },
+
       createWorkField: async (field: WorkField) => {
         try {
           const requestbody: WorkFieldCreationReqBody = {
@@ -263,6 +282,7 @@ export function WorkProvider({
       workFields,
       derivedFieldValues,
       cycledFieldNames,
+      pathname,
     ],
   );
 
@@ -276,6 +296,7 @@ type WorkContextValue = {
   cycledFieldNames: Set<string>;
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
+  deleteWork: (workId: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
 };

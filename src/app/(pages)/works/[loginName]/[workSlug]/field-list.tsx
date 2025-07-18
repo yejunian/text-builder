@@ -3,10 +3,23 @@
 import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { Eye, Loader, Pencil, PlusIcon } from "lucide-react";
+import {
+  Ellipsis,
+  Eye,
+  Loader,
+  PackageX,
+  Pencil,
+  PlusIcon,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -32,6 +45,7 @@ export default function FieldList({ workId, editable = false }: Props) {
     derivedFieldValues,
     cycledFieldNames,
     fetchWorkWithFields,
+    deleteWork,
     createWorkField,
     updateWorkField,
   } = useContext(WorkContext);
@@ -86,6 +100,14 @@ export default function FieldList({ workId, editable = false }: Props) {
     setIsAddOpen(true);
   };
 
+  const handleDelete = () => {
+    if (
+      confirm(`현재 편집 중인 매크로 "${workMetadata.title}"을(를) 삭제할까요?`)
+    ) {
+      deleteWork(workId);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -121,6 +143,30 @@ export default function FieldList({ workId, editable = false }: Props) {
               >
                 <PlusIcon size={16} /> 새 필드
               </Button>
+
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Ellipsis />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>동작 더 보기</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={handleDelete}
+                  >
+                    <PackageX /> 매크로 삭제
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button
