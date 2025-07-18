@@ -3,14 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import {
-  Ellipsis,
-  Eye,
-  Loader,
-  PackageX,
-  Pencil,
-  PlusIcon,
-} from "lucide-react";
+import { Ellipsis, Eye, Loader, Pencil, PlusIcon, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +24,7 @@ import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
 import FieldEditor from "./field-editor";
+import WorkMetadataDialog from "./work-metadata-dialog";
 
 type Props = {
   workId: string;
@@ -131,7 +125,10 @@ export default function FieldList({ workId, editable = false }: Props) {
               편집 중
             </Badge>
           )}
-          <h1 className="text-xl font-bold">{workMetadata.title}</h1>
+          <h1>
+            <span className="text-xl font-bold">{workMetadata.title}</span>
+            <WorkMetadataDialog />
+          </h1>
         </div>
 
         <div className="flex justify-end gap-2">
@@ -172,12 +169,12 @@ export default function FieldList({ workId, editable = false }: Props) {
                   </TooltipContent>
                 </Tooltip>
 
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={handleDelete}
                   >
-                    <PackageX /> 매크로 삭제
+                    <Trash2 /> 매크로 삭제
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

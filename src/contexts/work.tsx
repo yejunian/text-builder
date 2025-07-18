@@ -1,11 +1,11 @@
 "use client";
 
-import React, { createContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import status from "http-status";
 
-import { Work, WorkMetadata } from "@/types/work";
+import { Work, WorkMetadata, WorkUpsertionReqBody } from "@/types/work";
 import {
   WorkField,
   WorkFieldCreationReqBody,
@@ -13,6 +13,8 @@ import {
 } from "@/types/work-field";
 import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
+
+import { UserContext } from "./user";
 
 const emptyWorkMetadata = {
   workId: "",
@@ -29,6 +31,7 @@ export const WorkContext = createContext<WorkContextValue>({
   derivedFieldValues: {},
   cycledFieldNames: new Set(),
   fetchWorkWithFields: nop,
+  updateWork: nop,
   deleteWork: nop,
   createWorkField: nop,
   updateWorkField: nop,
@@ -42,6 +45,8 @@ export function WorkProvider({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const { loginName } = useContext(UserContext);
 
   const [prevWorkId, setPrevWorkId] = useState("");
   const [workMetadata, setWorkMetadata] =
@@ -168,6 +173,36 @@ export function WorkProvider({
         } catch (error) {
           console.error(error);
         }
+      },
+
+      updateWork: async (workId: string, body: WorkUpsertionReqBody) => {
+        const response = await fetch(`/api/works/${workId}`, {
+          method: "put",
+          body: JSON.stringify(body),
+        });
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return;
+        } else if (!response.ok) {
+          alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`);
+          return;
+        }
+
+        const nextWorkMetadata = {
+          ...workMetadata,
+          title: workMetadata.title,
+          slug: workMetadata.slug,
+        };
+
+        setWorkMetadata(nextWorkMetadata);
+
+        if (body.slug !== workMetadata.slug) {
+          router.replace(`/works/${loginName}/${body.slug}`);
+        }
+
+        alert("매크로 정보를 수정했습니다.");
       },
 
       deleteWork: async (workId: string) => {
@@ -325,6 +360,10 @@ type WorkContextValue = {
   cycledFieldNames: Set<string>;
 
   fetchWorkWithFields: (workId?: string) => void | Promise<void>;
+  updateWork: (
+    workId: string,
+    body: WorkUpsertionReqBody,
+  ) => void | Promise<void>;
   deleteWork: (workId: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
