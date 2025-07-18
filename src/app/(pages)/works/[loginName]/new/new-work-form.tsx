@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserContext } from "@/contexts/user";
-import { WorkCreationReqBody } from "@/types/work";
+import { WorkUpsertionReqBody } from "@/types/work";
 import { getLoginUrl } from "@/utils/get-login-url";
 
 export default function NewWorkForm() {
@@ -28,7 +28,7 @@ export default function NewWorkForm() {
       event.currentTarget.reportValidity();
     }
 
-    const workCreationReqBody: WorkCreationReqBody = {
+    const workCreationReqBody: WorkUpsertionReqBody = {
       slug: workSlug,
       title: workTitle,
     };
