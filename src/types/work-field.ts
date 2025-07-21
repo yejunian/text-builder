@@ -63,3 +63,27 @@ export type WorkField = UpsertionTimestamps & {
   fieldType: WorkFieldTypeName;
   fieldValue: string;
 };
+
+export type AllWorkFieldsReorderReqBody = {
+  order: string[];
+};
+
+export function isAllWorkFieldsReorderReqBody(
+  obj: unknown,
+): obj is AllWorkFieldsReorderReqBody {
+  if (!isObject(obj)) {
+    return false;
+  }
+
+  const order = obj.order;
+
+  // TODO: UUID v7 포맷 검사
+  if (
+    !(order instanceof Array) ||
+    order.filter((value) => typeof value !== "string").length > 0
+  ) {
+    return false;
+  }
+
+  return true;
+}
