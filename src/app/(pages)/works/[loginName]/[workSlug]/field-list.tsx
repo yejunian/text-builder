@@ -3,7 +3,15 @@
 import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { Ellipsis, Eye, Loader, Pencil, PlusIcon, Trash2 } from "lucide-react";
+import {
+  ArrowDownUp,
+  Ellipsis,
+  Eye,
+  Loader,
+  Pencil,
+  PlusIcon,
+  Trash2,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +32,7 @@ import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
 import FieldEditor from "./field-editor";
+import { FieldOrderDialog } from "./field-order-dialog";
 import WorkMetadataDialog from "./work-metadata-dialog";
 
 type Props = {
@@ -49,6 +58,7 @@ export default function FieldList({ workId, editable = false }: Props) {
     data: new Set<string>(),
   });
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
   const visibleWorkFields = workFields.filter(
     (field) => editable || field.isPublic,
@@ -118,6 +128,11 @@ export default function FieldList({ workId, editable = false }: Props) {
 
   return (
     <div className="space-y-4">
+      <FieldOrderDialog
+        open={isOrderDialogOpen}
+        onOpenChange={setIsOrderDialogOpen}
+      />
+
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1">
           {editable && (
@@ -170,6 +185,13 @@ export default function FieldList({ workId, editable = false }: Props) {
                 </Tooltip>
 
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => setIsOrderDialogOpen(true)}
+                  >
+                    <ArrowDownUp /> 필드 순서 변경
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={handleDelete}
