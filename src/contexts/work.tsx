@@ -7,6 +7,7 @@ import status from "http-status";
 
 import { Work, WorkMetadata, WorkUpsertionReqBody } from "@/types/work";
 import {
+  AllWorkFieldsReorderReqBody,
   WorkField,
   WorkFieldCreationReqBody,
   WorkFieldCreationResBody,
@@ -35,6 +36,7 @@ export const WorkContext = createContext<WorkContextValue>({
   deleteWork: nop,
   createWorkField: nop,
   updateWorkField: nop,
+  updateAllWorkFieldsOrder: nop,
   deleteWorkField: nop,
 });
 
@@ -312,6 +314,38 @@ export function WorkProvider({
         return true;
       },
 
+      updateAllWorkFieldsOrder: async (fields: WorkField[]) => {
+        const requestBody: AllWorkFieldsReorderReqBody = {
+          order: fields.map((field) => field.workFieldId),
+        };
+
+        const response = await fetch(
+          `/api/works/${workMetadata.workId}/order`,
+          {
+            method: "post",
+            body: JSON.stringify(requestBody),
+          },
+        );
+
+        if (response.status === status.UNAUTHORIZED) {
+          alert("로그인이 필요합니다.");
+          router.push(getLoginUrl(pathname));
+          return false;
+        } else if (!response.ok) {
+          alert(`필드 순서를 변경하는 데 실패했습니다.`);
+          return false;
+        }
+
+        const nextWorkFields = fields.map<WorkField>((value, index) => ({
+          ...value,
+          displayOrder: index + 1,
+        }));
+
+        setWorkFields(nextWorkFields);
+
+        return true;
+      },
+
       deleteWorkField: async (workFieldId: string) => {
         const response = await fetch(
           `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
@@ -367,6 +401,7 @@ type WorkContextValue = {
   deleteWork: (workId: string) => void | Promise<void>;
   createWorkField: (field: WorkField) => void | Promise<boolean>;
   updateWorkField: (field: WorkField) => void | Promise<boolean>;
+  updateAllWorkFieldsOrder: (fields: WorkField[]) => void | Promise<boolean>;
   deleteWorkField: (workFieldId: string) => void | Promise<boolean>;
 };
 
