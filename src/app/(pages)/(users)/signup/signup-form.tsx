@@ -5,16 +5,18 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import status from "http-status";
 import { FlaskConical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
 import { UserCreationReqBody } from "@/types/user";
 
 export default function SignupForm() {
   const router = useRouter();
+
+  const { sendClientRequest } = useSendClientRequest();
 
   const [loginName, setLoginName] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -38,22 +40,24 @@ export default function SignupForm() {
       password,
     };
 
-    const response = await fetch("/api/users", {
-      method: "post",
-      body: JSON.stringify(userCreationReqBody),
+    await sendClientRequest({
+      request: {
+        method: "post",
+        url: "/api/users",
+        body: userCreationReqBody,
+      },
+
+      response: {
+        handler: {
+          notOk: () => alert("계정 생성에 실패했습니다."),
+
+          ok: () => {
+            alert(`‘${loginName}’ 계정을 생성했습니다.`);
+            router.push("/login");
+          },
+        },
+      },
     });
-
-    if (response.status === status.CONFLICT) {
-      alert("이미 로그인했습니다.");
-      router.push("/works");
-      return;
-    } else if (!response.ok) {
-      alert("계정 생성에 실패했습니다.");
-      return;
-    }
-
-    alert(`‘${loginName}’ 계정을 생성했습니다.`);
-    router.push("/login");
   };
 
   return (
