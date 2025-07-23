@@ -4,7 +4,6 @@ import { useContext } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import status from "http-status";
 import { FlaskConical, FolderOpen, LogOut, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,25 +16,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/contexts/user";
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
 
 export default function Header() {
   const router = useRouter();
 
   const { loginName, displayName } = useContext(UserContext);
 
-  const handleLogout = async () => {
-    const response = await fetch("/api/logout");
+  const { sendClientRequest } = useSendClientRequest();
 
-    if (response.status === status.CONFLICT) {
-      alert("이미 로그아웃된 상태입니다.");
-    } else if (!response.ok) {
-      alert("로그아웃에 실패했습니다.");
-      return;
-    }
+  const handleLogout = () =>
+    sendClientRequest({
+      request: {
+        url: "/api/logout",
+      },
 
-    localStorage.removeItem("text-builder--user");
-    router.push("/");
-  };
+      response: {
+        handler: {
+          notOk: () => alert("로그아웃에 실패했습니다."),
+
+          ok: () => {
+            localStorage.removeItem("text-builder--user");
+            router.push("/");
+          },
+        },
+      },
+    });
 
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">

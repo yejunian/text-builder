@@ -1,12 +1,9 @@
 "use client";
 
 import React, { createContext, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 
-import status from "http-status";
-
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
 import { AllWorksResBody, WorkMetadata } from "@/types/work";
-import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
 
 export const WorkListContext = createContext<WorkListContextValue>({
@@ -19,8 +16,7 @@ export function WorkListProvider({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { sendClientRequest } = useSendClientRequest();
 
   const [works, setWorks] = useState<WorkMetadata[]>([]);
 
@@ -28,39 +24,35 @@ export function WorkListProvider({
     () => ({
       works,
 
-      fetchWorks: async () => {
-        try {
-          const response = await fetch("/api/works");
+      fetchWorks: () =>
+        void sendClientRequest({
+          request: {
+            url: "/api/works",
+          },
 
-          if (response.status === status.UNAUTHORIZED) {
-            alert("로그인이 필요합니다.");
-            router.push(getLoginUrl(pathname));
-            return;
-          } else if (!response.ok) {
-            return;
-          }
+          response: {
+            handler: {
+              notOk: () => console.error("매크로 목록 로드 실패"),
 
-          const { allWorks }: AllWorksResBody = await response.json();
-
-          setWorks(
-            allWorks.map((work) => ({
-              ...work,
-              createdAt: new Date(work.createdAt).toLocaleString("ko", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                hourCycle: "h23",
-              }),
-              updatedAt: new Date(work.updatedAt).toLocaleString("ko", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                hourCycle: "h23",
-              }),
-            })),
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      },
+              ok: ({ allWorks }: AllWorksResBody) =>
+                setWorks(
+                  allWorks.map((work) => ({
+                    ...work,
+                    createdAt: new Date(work.createdAt).toLocaleString("ko", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      hourCycle: "h23",
+                    }),
+                    updatedAt: new Date(work.updatedAt).toLocaleString("ko", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      hourCycle: "h23",
+                    }),
+                  })),
+                ),
+            },
+          },
+        }),
     }),
     // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps

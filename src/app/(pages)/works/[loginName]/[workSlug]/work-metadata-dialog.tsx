@@ -100,7 +100,9 @@ export default function WorkMetadataDialog() {
             <Button variant="outline">취소</Button>
           </DialogClose>
 
-          <Button onClick={handleApplyClick}>적용</Button>
+          <DialogClose asChild>
+            <Button onClick={handleApplyClick}>적용</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

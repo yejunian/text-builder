@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useContext, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import status from "http-status";
 
@@ -9,14 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserContext } from "@/contexts/user";
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
 import { WorkUpsertionReqBody } from "@/types/work";
-import { getLoginUrl } from "@/utils/get-login-url";
 
 export default function NewWorkForm() {
   const router = useRouter();
-  const pathname = usePathname();
 
   const { loginName } = useContext(UserContext);
+
+  const { sendClientRequest } = useSendClientRequest();
 
   const [workTitle, setWorkTitle] = useState("");
   const [workSlug, setWorkSlug] = useState("");
@@ -33,26 +34,29 @@ export default function NewWorkForm() {
       title: workTitle,
     };
 
-    const response = await fetch("/api/works", {
-      method: "post",
-      body: JSON.stringify(workCreationReqBody),
+    await sendClientRequest({
+      request: {
+        method: "post",
+        url: "/api/works",
+        body: workCreationReqBody,
+      },
+
+      response: {
+        handler: {
+          [status.BAD_REQUEST]: () =>
+            alert(
+              "입력이 올바르지 않거나 입력한 제목 또는 ID가 이미 존재합니다.",
+            ),
+
+          notOk: () => alert("새 텍스트 매크로 생성에 실패했습니다."),
+
+          ok: () => {
+            alert(`새 텍스트 매크로를 생성했습니다.`);
+            router.push(`/works/${loginName}/${workSlug}`);
+          },
+        },
+      },
     });
-
-    if (response.status === status.UNAUTHORIZED) {
-      // TODO: 입력했던 항목을 임시 저장할 필요가 있음
-      alert("로그인이 필요합니다.");
-      router.push(getLoginUrl(pathname));
-      return;
-    } else if (response.status === status.BAD_REQUEST) {
-      alert("입력이 올바르지 않거나 입력한 제목 또는 ID가 이미 존재합니다.");
-      return;
-    } else if (!response.ok) {
-      alert("새 텍스트 매크로 생성에 실패했습니다.");
-      return;
-    }
-
-    alert(`새 텍스트 매크로를 생성했습니다.`);
-    router.push(`/works/${loginName}/${workSlug}`);
   };
 
   return (

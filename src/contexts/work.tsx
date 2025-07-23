@@ -3,8 +3,7 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import status from "http-status";
-
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
 import { Work, WorkMetadata, WorkUpsertionReqBody } from "@/types/work";
 import {
   AllWorkFieldsReorderReqBody,
@@ -12,7 +11,6 @@ import {
   WorkFieldCreationReqBody,
   WorkFieldCreationResBody,
 } from "@/types/work-field";
-import { getLoginUrl } from "@/utils/get-login-url";
 import { nop } from "@/utils/nop";
 
 import { UserContext } from "./user";
@@ -49,6 +47,8 @@ export function WorkProvider({
   const pathname = usePathname();
 
   const { loginName } = useContext(UserContext);
+
+  const { sendClientRequest } = useSendClientRequest();
 
   const [prevWorkId, setPrevWorkId] = useState("");
   const [workMetadata, setWorkMetadata] =
@@ -152,122 +152,113 @@ export function WorkProvider({
           return;
         }
 
-        try {
-          const response = await fetch(
-            `/api/works/${workId || workMetadata.workId}`,
-          );
+        await sendClientRequest({
+          request: {
+            url: `/api/works/${workId || workMetadata.workId}`,
+          },
 
-          if (response.status === status.UNAUTHORIZED) {
-            alert("로그인이 필요합니다.");
-            router.push(getLoginUrl(pathname));
-            return;
-          } else if (!response.ok) {
-            setPrevWorkId("");
-            setWorkMetadata(emptyWorkMetadata);
-            setWorkFields([]);
-            return;
-          }
+          response: {
+            handler: {
+              notOk: () => {
+                setPrevWorkId("");
+                setWorkMetadata(emptyWorkMetadata);
+                setWorkFields([]);
+              },
 
-          const { fields, ...nextWorkMetadata }: Work = await response.json();
-          setPrevWorkId(nextWorkMetadata.workId);
-          setWorkMetadata(nextWorkMetadata);
-          setWorkFields(fields);
-        } catch (error) {
-          console.error(error);
-        }
+              ok: (body: Work) => {
+                const { fields, ...nextWorkMetadata } = body;
+                setPrevWorkId(nextWorkMetadata.workId);
+                setWorkMetadata(nextWorkMetadata);
+                setWorkFields(fields);
+              },
+            },
+          },
+        });
       },
 
       updateWork: async (workId: string, body: WorkUpsertionReqBody) => {
-        const response = await fetch(`/api/works/${workId}`, {
-          method: "put",
-          body: JSON.stringify(body),
+        sendClientRequest({
+          request: {
+            method: "put",
+            url: `/api/works/${workId}`,
+            body,
+          },
+
+          response: {
+            handler: {
+              notOk: () =>
+                alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`),
+
+              ok: () => {
+                const nextWorkMetadata = {
+                  ...workMetadata,
+                  ...body,
+                };
+
+                setWorkMetadata(nextWorkMetadata);
+
+                if (body.slug !== workMetadata.slug) {
+                  router.replace(`/works/${loginName}/${body.slug}/edit`);
+                }
+              },
+            },
+          },
         });
-
-        if (response.status === status.UNAUTHORIZED) {
-          alert("로그인이 필요합니다.");
-          router.push(getLoginUrl(pathname));
-          return;
-        } else if (!response.ok) {
-          alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`);
-          return;
-        }
-
-        const nextWorkMetadata = {
-          ...workMetadata,
-          title: workMetadata.title,
-          slug: workMetadata.slug,
-        };
-
-        setWorkMetadata(nextWorkMetadata);
-
-        if (body.slug !== workMetadata.slug) {
-          router.replace(`/works/${loginName}/${body.slug}`);
-        }
-
-        alert("매크로 정보를 수정했습니다.");
       },
 
       deleteWork: async (workId: string) => {
-        const response = await fetch(`/api/works/${workId}`, {
-          method: "delete",
+        await sendClientRequest({
+          request: {
+            method: "delete",
+            url: `/api/works/${workId}`,
+          },
+
+          response: {
+            handler: {
+              notOk: () =>
+                alert(`"${workMetadata.title}" 매크로를 삭제할 수 없습니다.`),
+
+              ok: () => {
+                alert(`"${workMetadata.title}" 매크로를 삭제했습니다.`);
+                router.push("/works");
+              },
+            },
+          },
         });
-
-        if (response.status === status.UNAUTHORIZED) {
-          alert("로그인이 필요합니다.");
-          router.push(getLoginUrl(pathname));
-          return;
-        } else if (!response.ok) {
-          alert(`"${workMetadata.title}" 매크로를 삭제할 수 없습니다.`);
-          return;
-        }
-
-        alert(`"${workMetadata.title}" 매크로를 삭제했습니다.`);
-        router.push("/works");
       },
 
       createWorkField: async (field: WorkField) => {
-        try {
-          const requestbody: WorkFieldCreationReqBody = {
-            name: field.fieldName,
-            type: "text",
-            value: field.fieldValue,
-            isPublic: true,
-          };
+        const requestbody: WorkFieldCreationReqBody = {
+          name: field.fieldName,
+          type: "text",
+          value: field.fieldValue,
+          isPublic: true,
+        };
 
-          const response = await fetch(
-            `/api/works/${workMetadata.workId}/fields`,
-            {
-              method: "post",
-              body: JSON.stringify(requestbody),
+        return await sendClientRequest({
+          request: {
+            method: "post",
+            url: `/api/works/${workMetadata.workId}/fields`,
+            body: requestbody,
+          },
+
+          response: {
+            handler: {
+              notOk: () => alert("필드 생성에 실패했습니다."),
+
+              ok: ({ workFieldId }: WorkFieldCreationResBody) => {
+                // TODO: 응답으로, 생성된 새 필드 자체를 온전하게 받을 필요가 있음.
+                setWorkFields([
+                  ...workFields,
+                  {
+                    ...field,
+                    workFieldId,
+                  },
+                ]);
+              },
             },
-          );
-
-          if (response.status === status.UNAUTHORIZED) {
-            alert("로그인이 필요합니다.");
-            router.push(getLoginUrl(pathname));
-            return false;
-          } else if (!response.ok) {
-            alert("필드 생성에 실패했습니다.");
-            return false;
-          }
-
-          // TODO: 응답으로, 생성된 새 필드 자체를 온전하게 받을 필요가 있음.
-          const { workFieldId }: WorkFieldCreationResBody =
-            await response.json();
-
-          setWorkFields([
-            ...workFields,
-            {
-              ...field,
-              workFieldId,
-            },
-          ]);
-
-          return true;
-        } catch (error) {
-          console.error(error);
-          return false;
-        }
+          },
+        });
       },
 
       updateWorkField: async (field: WorkField) => {
@@ -278,40 +269,38 @@ export function WorkProvider({
           isPublic: field.isPublic,
         };
 
-        const response = await fetch(
-          `/api/works/${workMetadata.workId}/fields/${field.workFieldId}`,
-          {
+        return await sendClientRequest({
+          request: {
             method: "put",
-            body: JSON.stringify(requestBody),
+            url: `/api/works/${workMetadata.workId}/fields/${field.workFieldId}`,
+            body: requestBody,
           },
-        );
 
-        if (response.status === status.UNAUTHORIZED) {
-          alert("로그인이 필요합니다.");
-          router.push(getLoginUrl(pathname));
-          return false;
-        } else if (!response.ok) {
-          alert(`${field.fieldName} 필드를 변경하는 데 실패했습니다.`);
-          return false;
-        }
+          response: {
+            handler: {
+              notOk: () =>
+                alert(`${field.fieldName} 필드를 변경하는 데 실패했습니다.`),
 
-        const nextWorkFields = workFields.map<WorkField>((value) => {
-          if (value.workFieldId === field.workFieldId) {
-            return {
-              ...value,
-              fieldName: field.fieldName,
-              fieldType: field.fieldType,
-              fieldValue: field.fieldValue,
-              isPublic: field.isPublic,
-            };
-          } else {
-            return value;
-          }
+              ok: () => {
+                const nextWorkFields = workFields.map<WorkField>((value) => {
+                  if (value.workFieldId === field.workFieldId) {
+                    return {
+                      ...value,
+                      fieldName: field.fieldName,
+                      fieldType: field.fieldType,
+                      fieldValue: field.fieldValue,
+                      isPublic: field.isPublic,
+                    };
+                  } else {
+                    return value;
+                  }
+                });
+
+                setWorkFields(nextWorkFields);
+              },
+            },
+          },
         });
-
-        setWorkFields(nextWorkFields);
-
-        return true;
       },
 
       updateAllWorkFieldsOrder: async (fields: WorkField[]) => {
@@ -319,60 +308,56 @@ export function WorkProvider({
           order: fields.map((field) => field.workFieldId),
         };
 
-        const response = await fetch(
-          `/api/works/${workMetadata.workId}/order`,
-          {
+        return await sendClientRequest({
+          request: {
             method: "post",
-            body: JSON.stringify(requestBody),
+            url: `/api/works/${workMetadata.workId}/order`,
+            body: requestBody,
           },
-        );
 
-        if (response.status === status.UNAUTHORIZED) {
-          alert("로그인이 필요합니다.");
-          router.push(getLoginUrl(pathname));
-          return false;
-        } else if (!response.ok) {
-          alert(`필드 순서를 변경하는 데 실패했습니다.`);
-          return false;
-        }
+          response: {
+            handler: {
+              notOk: () => alert(`필드 순서를 변경하는 데 실패했습니다.`),
 
-        const nextWorkFields = fields.map<WorkField>((value, index) => ({
-          ...value,
-          displayOrder: index + 1,
-        }));
+              ok: () => {
+                const nextWorkFields = fields.map<WorkField>(
+                  (value, index) => ({
+                    ...value,
+                    displayOrder: index + 1,
+                  }),
+                );
 
-        setWorkFields(nextWorkFields);
-
-        return true;
+                setWorkFields(nextWorkFields);
+              },
+            },
+          },
+        });
       },
 
       deleteWorkField: async (workFieldId: string) => {
-        const response = await fetch(
-          `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
-          {
+        return await sendClientRequest({
+          request: {
             method: "delete",
+            url: `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
           },
-        );
 
-        if (response.status === status.UNAUTHORIZED) {
-          alert("로그인이 필요합니다.");
-          router.push(getLoginUrl(pathname));
-          return false;
-        } else if (!response.ok) {
-          alert("필드를 삭제하는 데 실패했습니다.");
-          return false;
-        }
+          response: {
+            handler: {
+              notOk: () => alert("필드를 삭제하는 데 실패했습니다."),
 
-        const nextWorkFields = workFields.filter(
-          (value) => value.workFieldId !== workFieldId,
-        );
+              ok: () => {
+                const nextWorkFields = workFields.filter(
+                  (value) => value.workFieldId !== workFieldId,
+                );
 
-        setWorkFields(nextWorkFields);
-
-        return true;
+                setWorkFields(nextWorkFields);
+              },
+            },
+          },
+        });
       },
     }),
-    // 무시하는 항목: router
+    // 무시하는 항목: router, sendClientRequest
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       prevWorkId,
@@ -381,6 +366,7 @@ export function WorkProvider({
       derivedFieldValues,
       cycledFieldNames,
       pathname,
+      loginName,
     ],
   );
 

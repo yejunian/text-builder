@@ -5,14 +5,14 @@ import { FormEvent, useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import status from "http-status";
 import { FlaskConical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserContext } from "@/contexts/user";
-import { UserLoginResBody } from "@/types/user";
+import { useSendClientRequest } from "@/hooks/use-send-client-request";
+import { UserLoginReqBody, UserLoginResBody } from "@/types/user";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -21,6 +21,8 @@ export default function LoginForm() {
   const router = useRouter();
 
   const { login } = useContext(UserContext);
+
+  const { sendClientRequest } = useSendClientRequest();
 
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
@@ -32,31 +34,31 @@ export default function LoginForm() {
       event.currentTarget.reportValidity();
     }
 
-    const response = await fetch("/api/login", {
-      method: "post",
-      body: JSON.stringify({
-        loginName,
-        password,
-      }),
+    const requestBody: UserLoginReqBody = { loginName, password };
+
+    await sendClientRequest({
+      request: {
+        method: "post",
+        url: "/api/login",
+        body: requestBody,
+      },
+
+      response: {
+        handler: {
+          notOk: () => alert("로그인에 실패했습니다."),
+
+          ok: (body: UserLoginResBody) => {
+            login(body);
+
+            if (nextPath) {
+              router.push(nextPath);
+            } else {
+              router.push("/works");
+            }
+          },
+        },
+      },
     });
-
-    if (response.status === status.CONFLICT) {
-      alert("이미 로그인했습니다.");
-      router.push("/works");
-      return;
-    } else if (!response.ok) {
-      alert("로그인에 실패했습니다.");
-      return;
-    }
-
-    const result: UserLoginResBody = await response.json();
-    login(result);
-
-    if (nextPath) {
-      router.push(nextPath);
-    } else {
-      router.push("/works");
-    }
   };
 
   return (

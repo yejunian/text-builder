@@ -12,24 +12,16 @@ export type WorkUpsertionReqBody = {
 export function isWorkUpsertionReqBody(
   obj: unknown,
 ): obj is WorkUpsertionReqBody {
-  if (!isObject(obj)) {
-    return false;
-  }
-
-  if (!isWorkSlug(obj?.slug)) {
-    return false;
-  }
-
-  if (!obj?.title || typeof obj.title !== "string") {
-    return false;
-  }
-
-  return true;
+  return (
+    isObject(obj) &&
+    isWorkSlug(obj?.slug) &&
+    typeof obj.title === "string" &&
+    obj.title.length > 0
+  );
 }
 
 export function isWorkSlug(str: unknown): boolean {
   return (
-    !!str &&
     typeof str === "string" &&
     str.length > 0 &&
     str.length <= 150 &&
