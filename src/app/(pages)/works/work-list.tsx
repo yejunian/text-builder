@@ -1,9 +1,15 @@
 "use client";
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { Calendar, ChevronRight, PackageOpen, Plus } from "lucide-react";
+import {
+  Calendar,
+  ChevronRight,
+  LoaderCircle,
+  PackageOpen,
+  Plus,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,9 +27,15 @@ export default function WorkList() {
   const { loginName } = useContext(UserContext);
   const { works, fetchWorks } = useContext(WorkListContext);
 
+  const [isWaitingResponse, setIsWaitingResponse] = useState(true);
+
   useEffect(
     () => {
-      fetchWorks();
+      fetchWorks({
+        isWaitingResponse: {
+          setIsWaitingResponse,
+        },
+      });
     },
     // 무시하는 항목: fetchWorks
     // 목적: 사용자에 따라서만 작업 목록을 다시 불러오고자 함.
@@ -105,19 +117,33 @@ export default function WorkList() {
 
       {works.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
-          <PackageOpen
-            className="mx-auto opacity-50"
-            size={192}
-            strokeWidth={1.5}
-            absoluteStrokeWidth
-          />
-          <p>텍스트 매크로가 없습니다.</p>
-          <p>첫 번째 텍스트 매크로를 생성해 보세요.</p>
-          <Button className="mt-2" asChild size="lg">
-            <Link href={`/works/${loginName}/new`}>
-              <Plus className="h-4 w-4" />새 텍스트 매크로
-            </Link>
-          </Button>
+          {isWaitingResponse ? (
+            <>
+              <LoaderCircle
+                className="mx-auto animate-spin opacity-50"
+                size={128}
+                strokeWidth={2}
+                absoluteStrokeWidth
+              />
+              <p>텍스트 매크로 목록 불러오는 중...</p>
+            </>
+          ) : (
+            <>
+              <PackageOpen
+                className="mx-auto opacity-50"
+                size={192}
+                strokeWidth={1.5}
+                absoluteStrokeWidth
+              />
+              <p>텍스트 매크로가 없습니다.</p>
+              <p>첫 번째 텍스트 매크로를 생성해 보세요.</p>
+              <Button className="mt-2" asChild size="lg">
+                <Link href={`/works/${loginName}/new`}>
+                  <Plus className="h-4 w-4" />새 텍스트 매크로
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       )}
     </>

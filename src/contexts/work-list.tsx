@@ -2,7 +2,10 @@
 
 import React, { createContext, useMemo, useState } from "react";
 
-import { useSendClientRequest } from "@/hooks/use-send-client-request";
+import {
+  SendClientRequestStates,
+  useSendClientRequest,
+} from "@/hooks/use-send-client-request";
 import { AllWorksResBody, WorkMetadata } from "@/types/work";
 import { nop } from "@/utils/nop";
 
@@ -24,8 +27,10 @@ export function WorkListProvider({
     () => ({
       works,
 
-      fetchWorks: () =>
+      fetchWorks: (state?: SendClientRequestStates) =>
         void sendClientRequest({
+          state,
+
           request: {
             url: "/api/works",
           },
@@ -54,7 +59,7 @@ export function WorkListProvider({
           },
         }),
     }),
-    // 무시하는 항목: router
+    // 무시하는 항목: sendClientRequest
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [works],
   );
@@ -65,5 +70,5 @@ export function WorkListProvider({
 type WorkListContextValue = {
   works: WorkMetadata[];
 
-  fetchWorks: () => void | Promise<void>;
+  fetchWorks: (state?: SendClientRequestStates) => void | Promise<void>;
 };

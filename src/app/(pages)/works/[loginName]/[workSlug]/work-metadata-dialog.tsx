@@ -26,7 +26,8 @@ import { WorkContext } from "@/contexts/work";
 import { WorkMetadata } from "@/types/work";
 
 export default function WorkMetadataDialog() {
-  const { workMetadata, updateWork } = useContext(WorkContext);
+  const { workMetadata, isWaitingFieldResponses, updateWork } =
+    useContext(WorkContext);
 
   const [editedField, setEditedField] = useState<
     Pick<WorkMetadata, "title" | "slug">
@@ -47,15 +48,18 @@ export default function WorkMetadataDialog() {
   };
 
   const handleApplyClick = () => {
-    // 성공하면 페이지 이동
-    updateWork(workMetadata.workId, editedField);
+    // body.slug가 변경되면 페이지 이동
+    updateWork({
+      workId: workMetadata.workId,
+      body: editedField,
+    });
   };
 
   return (
     <Dialog>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DialogTrigger asChild>
+          <DialogTrigger asChild disabled={isWaitingFieldResponses}>
             <Button variant="ghost" size="sm" className="ml-1">
               <Pencil />
             </Button>
@@ -83,6 +87,7 @@ export default function WorkMetadataDialog() {
               id="work-metadata-title"
               value={editedField.title}
               onChange={(event) => handleChange("title", event.target.value)}
+              disabled={isWaitingFieldResponses}
             />
           </div>
           <div className="grid gap-3">
@@ -91,17 +96,25 @@ export default function WorkMetadataDialog() {
               id="work-metadata-slug"
               value={editedField.slug}
               onChange={(event) => handleChange("slug", event.target.value)}
+              disabled={isWaitingFieldResponses}
             />
           </div>
         </div>
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">취소</Button>
+            <Button variant="outline" disabled={isWaitingFieldResponses}>
+              취소
+            </Button>
           </DialogClose>
 
           <DialogClose asChild>
-            <Button onClick={handleApplyClick}>적용</Button>
+            <Button
+              onClick={handleApplyClick}
+              disabled={isWaitingFieldResponses}
+            >
+              적용
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

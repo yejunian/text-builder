@@ -8,6 +8,7 @@ import {
   Ellipsis,
   Eye,
   Loader,
+  LoaderCircle,
   Pencil,
   PlusIcon,
   Trash2,
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/tooltip";
 import { UserContext } from "@/contexts/user";
 import { WorkContext } from "@/contexts/work";
+import { cn } from "@/lib/utils";
 import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
@@ -47,6 +49,9 @@ export default function FieldList({ workId, editable = false }: Props) {
     workFields,
     derivedFieldValues,
     cycledFieldNames,
+    isWaitingWorkResponse,
+    isWaitingFieldResponses,
+    waitingFieldResponses,
     fetchWorkWithFields,
     deleteWork,
     createWorkField,
@@ -66,7 +71,7 @@ export default function FieldList({ workId, editable = false }: Props) {
 
   useEffect(
     () => {
-      fetchWorkWithFields(workId);
+      fetchWorkWithFields({ workId });
     },
     // 무시하는 항목: fetchWorkWithFields
     // 목적: 작업 ID에 따라서만 작업을 다시 불러오고자 함.
@@ -80,7 +85,7 @@ export default function FieldList({ workId, editable = false }: Props) {
   };
 
   const handleSaveField = async (nextField: WorkField) => {
-    const success = await updateWorkField(nextField);
+    const success = await updateWorkField({ field: nextField });
 
     if (success) {
       editingFields.data.delete(nextField.workFieldId);
@@ -98,7 +103,7 @@ export default function FieldList({ workId, editable = false }: Props) {
       return;
     }
 
-    const success = await deleteWorkField(id);
+    const success = await deleteWorkField({ workFieldId: id });
 
     if (success) {
       editingFields.data.delete(id);
@@ -107,7 +112,7 @@ export default function FieldList({ workId, editable = false }: Props) {
   };
 
   const handleSaveNewField = async (field: WorkField) => {
-    const success = await createWorkField(field);
+    const success = await createWorkField({ field });
 
     if (success) {
       setIsAddOpen(false);
@@ -115,14 +120,17 @@ export default function FieldList({ workId, editable = false }: Props) {
   };
 
   const handleAddField = () => {
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight }));
     setIsAddOpen(true);
   };
 
   const handleDelete = () => {
-    if (
-      confirm(`현재 편집 중인 매크로 "${workMetadata.title}"을(를) 삭제할까요?`)
-    ) {
-      deleteWork(workId);
+    const ok = confirm(
+      `현재 편집 중인 매크로 "${workMetadata.title}"을(를) 삭제할까요?`,
+    );
+
+    if (ok) {
+      deleteWork({ workId });
     }
   };
 
@@ -141,8 +149,10 @@ export default function FieldList({ workId, editable = false }: Props) {
             </Badge>
           )}
           <h1>
-            <span className="text-xl font-bold">{workMetadata.title}</span>
-            <WorkMetadataDialog />
+            <span className="text-xl font-bold">
+              {isWaitingWorkResponse ? "불러오는 중..." : workMetadata.title}
+            </span>
+            {editable && <WorkMetadataDialog />}
           </h1>
         </div>
 
@@ -151,10 +161,24 @@ export default function FieldList({ workId, editable = false }: Props) {
             <>
               <Tooltip>
                 <TooltipTrigger>
-                  <Button variant="link" size="sm" asChild>
-                    <Link href={`/works/${loginName}/${workMetadata.slug}`}>
-                      <Eye /> 보기 모드로
-                    </Link>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    asChild
+                    className={cn(
+                      isWaitingFieldResponses &&
+                        "text-muted-foreground cursor-default hover:no-underline",
+                    )}
+                  >
+                    {isWaitingFieldResponses ? (
+                      <span>
+                        <Eye /> 보기 모드로
+                      </span>
+                    ) : (
+                      <Link href={`/works/${loginName}/${workMetadata.slug}`}>
+                        <Eye /> 보기 모드로
+                      </Link>
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -165,7 +189,9 @@ export default function FieldList({ workId, editable = false }: Props) {
               <Button
                 variant={workFields.length === 0 ? "default" : "outline"}
                 size="sm"
+                className={cn(isAddOpen && "text-muted-foreground")}
                 onClick={handleAddField}
+                disabled={isWaitingWorkResponse}
               >
                 <PlusIcon size={16} /> 새 필드
               </Button>
@@ -173,7 +199,10 @@ export default function FieldList({ workId, editable = false }: Props) {
               <DropdownMenu>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger
+                      asChild
+                      disabled={isWaitingFieldResponses}
+                    >
                       <Button variant="ghost" size="sm">
                         <Ellipsis />
                       </Button>
@@ -206,6 +235,7 @@ export default function FieldList({ workId, editable = false }: Props) {
               variant={visibleWorkFields.length === 0 ? "default" : "outline"}
               size="sm"
               asChild
+              disabled={isWaitingWorkResponse}
             >
               <Link href={`/works/${loginName}/${workMetadata.slug}/edit`}>
                 <Pencil /> 편집
@@ -224,6 +254,10 @@ export default function FieldList({ workId, editable = false }: Props) {
             onSave={handleSaveField}
             onCancel={handleCancelEdit}
             onDelete={handleDeleteField}
+            disabled={
+              isWaitingWorkResponse ||
+              waitingFieldResponses.data.has(field.workFieldId)
+            }
           />
         ) : (
           <FieldDisplay
@@ -233,30 +267,45 @@ export default function FieldList({ workId, editable = false }: Props) {
             derivedFieldValue={derivedFieldValues[field.fieldName]}
             editable={editable}
             onEdit={() => handleEditField(field.workFieldId)}
+            disabled={isWaitingWorkResponse}
           />
         ),
       )}
 
       {visibleWorkFields.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">
-          {isAddOpen || (
-            <Loader
-              className="mx-auto opacity-50"
-              size={192}
-              strokeWidth={1.5}
-              absoluteStrokeWidth
-            />
-          )}
-          <p>매크로가 비었습니다.</p>
-          {editable ? (
-            <p>
-              {isAddOpen
-                ? "아래 입력란을 채우고 ‘적용’ "
-                : "위 또는 아래의 ‘새 필드 추가’ "}
-              버튼을 눌러서 새 필드를 생성해 보세요.
-            </p>
+          {isWaitingWorkResponse ? (
+            <>
+              <LoaderCircle
+                className="mx-auto animate-spin opacity-50"
+                size={128}
+                strokeWidth={2}
+                absoluteStrokeWidth
+              />
+              <p>필드 목록 불러오는 중...</p>
+            </>
           ) : (
-            <p>오른쪽 위의 ‘편집’ 버튼을 눌러서 매크로를 편집해 보세요.</p>
+            <>
+              {isAddOpen || (
+                <Loader
+                  className="mx-auto opacity-50"
+                  size={192}
+                  strokeWidth={1.5}
+                  absoluteStrokeWidth
+                />
+              )}
+              <p>매크로가 비었습니다.</p>
+              {editable ? (
+                <p>
+                  {isAddOpen
+                    ? "아래 입력란을 채우고 ‘적용’ "
+                    : "위 또는 아래의 ‘새 필드 추가’ "}
+                  버튼을 눌러서 새 필드를 생성해 보세요.
+                </p>
+              ) : (
+                <p>오른쪽 위의 ‘편집’ 버튼을 눌러서 매크로를 편집해 보세요.</p>
+              )}
+            </>
           )}
         </div>
       )}
@@ -268,7 +317,7 @@ export default function FieldList({ workId, editable = false }: Props) {
           {isAddOpen ? (
             <FieldEditor
               field={{
-                workFieldId: "",
+                workFieldId: "new",
                 displayOrder:
                   1 +
                   workFields.reduce(
@@ -284,12 +333,16 @@ export default function FieldList({ workId, editable = false }: Props) {
               }}
               onSave={handleSaveNewField}
               onCancel={() => setIsAddOpen(false)}
+              disabled={
+                isWaitingWorkResponse || waitingFieldResponses.data.has("new")
+              }
             />
           ) : (
             <Button
               variant={workFields.length === 0 ? "default" : "outline"}
               className="mb-64 flex w-full items-center justify-center gap-2 py-6"
               onClick={handleAddField}
+              disabled={isWaitingWorkResponse}
             >
               <PlusIcon size={16} /> 새 필드 추가
             </Button>

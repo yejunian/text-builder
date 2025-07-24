@@ -1,10 +1,16 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { FlaskConical, FolderOpen, LogOut, User } from "lucide-react";
+import {
+  FlaskConical,
+  FolderOpen,
+  LoaderCircle,
+  LogOut,
+  User,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +31,17 @@ export default function Header() {
 
   const { sendClientRequest } = useSendClientRequest();
 
+  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
+
   const handleLogout = () =>
     sendClientRequest({
+      state: {
+        isWaitingResponse: {
+          setIsWaitingResponse,
+          willRestoreOnSuccess: false,
+        },
+      },
+
       request: {
         url: "/api/logout",
       },
@@ -92,10 +107,19 @@ export default function Header() {
 
         {/* 계정 메뉴 */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled={isWaitingResponse}>
             <Button variant="ghost" size="sm" className="flex items-center">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{displayName}</span>
+              {isWaitingResponse ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">로그아웃 중...</span>
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{displayName}</span>
+                </>
+              )}
             </Button>
           </DropdownMenuTrigger>
 

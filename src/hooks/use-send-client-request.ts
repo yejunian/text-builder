@@ -12,11 +12,16 @@ export function useSendClientRequest() {
   const pathname = usePathname();
 
   return {
-    sendClientRequest: <Req = null, Res = null, ResErr = null>({
+    sendClientRequest: async <Req = null, Res = null, ResErr = null>({
+      state,
       request,
       response,
-    }: SendRequestParams<Req, Res, ResErr>): Promise<boolean> =>
-      sendRequest({
+    }: SendClientRequestParams<Req, Res, ResErr>): Promise<boolean> => {
+      if (state?.isWaitingResponse?.setIsWaitingResponse) {
+        state.isWaitingResponse.setIsWaitingResponse(true);
+      }
+
+      const success = await sendRequest({
         request,
 
         response: {
@@ -38,6 +43,34 @@ export function useSendClientRequest() {
             },
           },
         },
-      }),
+      });
+
+      if (state?.isWaitingResponse?.setIsWaitingResponse) {
+        if (success) {
+          if (state?.isWaitingResponse?.willRestoreOnSuccess !== false) {
+            state.isWaitingResponse.setIsWaitingResponse(false);
+          }
+        } else {
+          state.isWaitingResponse.setIsWaitingResponse(false);
+        }
+      }
+
+      return success;
+    },
   };
 }
+
+type SendClientRequestParams<
+  Req = null,
+  Res = null,
+  ResErr = null,
+> = SendRequestParams<Req, Res, ResErr> & {
+  state?: SendClientRequestStates;
+};
+
+export type SendClientRequestStates = {
+  isWaitingResponse?: {
+    setIsWaitingResponse?: (value: boolean) => void;
+    willRestoreOnSuccess?: boolean;
+  };
+};

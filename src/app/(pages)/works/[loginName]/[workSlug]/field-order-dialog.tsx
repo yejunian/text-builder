@@ -33,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { WorkContext } from "@/contexts/work";
+import { cn } from "@/lib/utils";
 import { WorkField } from "@/types/work-field";
 
 type FieldOrderDialogProps = {
@@ -42,9 +43,13 @@ type FieldOrderDialogProps = {
 
 type SortableFieldCardProps = {
   field: WorkField;
+  disabled?: boolean;
 };
 
-function SortableFieldCard({ field }: SortableFieldCardProps) {
+function SortableFieldCard({
+  field,
+  disabled = false,
+}: SortableFieldCardProps) {
   const {
     attributes,
     listeners,
@@ -71,9 +76,14 @@ function SortableFieldCard({ field }: SortableFieldCardProps) {
         <CardContent className="space-y-2">
           <div className="relative -top-5 my-0 flex h-0 justify-center">
             <div
-              {...attributes}
-              {...listeners}
-              className="hover:bg-muted z-10 flex h-6 w-10 cursor-grab items-center justify-center rounded active:cursor-grabbing"
+              {...(disabled ? {} : attributes)}
+              {...(disabled ? {} : listeners)}
+              className={cn(
+                "z-10 flex h-6 w-10 items-center justify-center rounded",
+                disabled
+                  ? "cursor-not-allowed hover:bg-transparent active:cursor-not-allowed"
+                  : "hover:bg-muted cursor-grab active:cursor-grabbing",
+              )}
             >
               <GripHorizontal size={16} className="text-muted-foreground" />
             </div>
@@ -104,7 +114,8 @@ export function FieldOrderDialog({
   open,
   onOpenChange,
 }: FieldOrderDialogProps) {
-  const { workFields, updateAllWorkFieldsOrder } = useContext(WorkContext);
+  const { workFields, isWaitingFieldResponses, updateAllWorkFieldsOrder } =
+    useContext(WorkContext);
 
   const [reorderedFields, setReorderedFields] = useState<WorkField[]>([]);
 
@@ -143,7 +154,7 @@ export function FieldOrderDialog({
   };
 
   const handleApply = async () => {
-    const success = await updateAllWorkFieldsOrder(reorderedFields);
+    const success = await updateAllWorkFieldsOrder({ fields: reorderedFields });
 
     if (success) {
       onOpenChange(false);
@@ -178,10 +189,15 @@ export function FieldOrderDialog({
             <SortableContext
               items={reorderedFields.map((field) => field.workFieldId)}
               strategy={verticalListSortingStrategy}
+              disabled={isWaitingFieldResponses}
             >
               <div className="space-y-4">
                 {reorderedFields.map((field) => (
-                  <SortableFieldCard key={field.workFieldId} field={field} />
+                  <SortableFieldCard
+                    key={field.workFieldId}
+                    field={field}
+                    disabled={isWaitingFieldResponses}
+                  />
                 ))}
               </div>
             </SortableContext>
@@ -189,10 +205,17 @@ export function FieldOrderDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isWaitingFieldResponses}
+          >
             취소
           </Button>
-          <Button onClick={handleApply}>적용</Button>
+
+          <Button onClick={handleApply} disabled={isWaitingFieldResponses}>
+            적용
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

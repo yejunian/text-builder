@@ -21,6 +21,7 @@ type Props = {
   hasCycle?: boolean | undefined;
   derivedFieldValue: string;
   editable: boolean;
+  disabled?: boolean | undefined;
   onEdit: () => void;
 };
 
@@ -29,6 +30,7 @@ export default function FieldDisplay({
   hasCycle = false,
   derivedFieldValue,
   editable,
+  disabled = false,
   onEdit,
 }: Props) {
   const [refCopiedTimeoutId, setRefCopiedTimeoutId] = useState(-1);
@@ -54,6 +56,7 @@ export default function FieldDisplay({
                       window.setTimeout(() => setRefCopiedTimeoutId(-1), 2000),
                     );
                   }}
+                  disabled={disabled}
                 >
                   <h3 className="text-lg font-medium">{field.fieldName}</h3>
 
@@ -95,12 +98,17 @@ export default function FieldDisplay({
               </Tooltip>
             )}
 
-            {hasCycle && <Badge variant="destructive">순환 참조</Badge>}
+            {hasCycle && <Badge variant="destructive">잘못된 참조</Badge>}
           </div>
 
           <div className="flex items-center gap-2">
             {editable && (
-              <Button variant="outline" size="sm" onClick={onEdit}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onEdit}
+                disabled={disabled}
+              >
                 편집
               </Button>
             )}
@@ -130,6 +138,7 @@ export default function FieldDisplay({
                       window.setTimeout(() => setRawCopiedTimeoutId(-1), 2000),
                     );
                   }}
+                  disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <FileJson
@@ -171,6 +180,7 @@ export default function FieldDisplay({
                       ),
                     );
                   }}
+                  disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <Copy

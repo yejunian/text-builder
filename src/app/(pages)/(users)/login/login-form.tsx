@@ -26,6 +26,7 @@ export default function LoginForm() {
 
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
+  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,6 +38,13 @@ export default function LoginForm() {
     const requestBody: UserLoginReqBody = { loginName, password };
 
     await sendClientRequest({
+      state: {
+        isWaitingResponse: {
+          setIsWaitingResponse,
+          willRestoreOnSuccess: false,
+        },
+      },
+
       request: {
         method: "post",
         url: "/api/login",
@@ -84,6 +92,7 @@ export default function LoginForm() {
             type="text"
             value={loginName}
             onChange={(event) => setLoginName(event.target.value)}
+            disabled={isWaitingResponse}
             autoFocus
             required
           />
@@ -96,11 +105,12 @@ export default function LoginForm() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            disabled={isWaitingResponse}
             required
           />
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isWaitingResponse}>
           로그인
         </Button>
 

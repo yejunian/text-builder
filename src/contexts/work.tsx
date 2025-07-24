@@ -29,6 +29,11 @@ export const WorkContext = createContext<WorkContextValue>({
   workFields: [],
   derivedFieldValues: {},
   cycledFieldNames: new Set(),
+
+  isWaitingWorkResponse: true,
+  isWaitingFieldResponses: true,
+  waitingFieldResponses: { data: new Set() },
+
   fetchWorkWithFields: nop,
   updateWork: nop,
   deleteWork: nop,
@@ -57,6 +62,10 @@ export function WorkProvider({
   const [cycledFieldNames, setCycledFieldNames] = useState<Set<string>>(
     new Set(),
   );
+  const [isWaitingWorkResponse, setIsWaitingWorkResponse] = useState(true);
+  const [waitingFieldResponses, setWaitingFieldResponses] = useState({
+    data: new Set<string>(),
+  });
 
   const derivedFieldValues = useMemo<DerivedFieldValues>(() => {
     const fields: { [fieldName: string]: WorkField } = {};
@@ -140,6 +149,20 @@ export function WorkProvider({
     return result;
   }, [workFields]);
 
+  const setWaitingFieldResponsesWith = (fieldId: string) => {
+    return (value: boolean) => {
+      const { data } = waitingFieldResponses;
+
+      if (value) {
+        data.add(fieldId);
+      } else {
+        data.delete(fieldId);
+      }
+
+      setWaitingFieldResponses({ data });
+    };
+  };
+
   const contextValue = useMemo<WorkContextValue>(
     () => ({
       workMetadata,
@@ -147,12 +170,23 @@ export function WorkProvider({
       derivedFieldValues,
       cycledFieldNames,
 
-      fetchWorkWithFields: async (workId?: string) => {
+      isWaitingWorkResponse,
+      isWaitingFieldResponses:
+        isWaitingWorkResponse || waitingFieldResponses.data.size > 0,
+      waitingFieldResponses,
+
+      fetchWorkWithFields: async ({ workId }) => {
         if (prevWorkId === workId) {
           return;
         }
 
         await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setIsWaitingWorkResponse,
+            },
+          },
+
           request: {
             url: `/api/works/${workId || workMetadata.workId}`,
           },
@@ -176,8 +210,15 @@ export function WorkProvider({
         });
       },
 
-      updateWork: async (workId: string, body: WorkUpsertionReqBody) => {
+      updateWork: async ({ workId, body }) => {
         sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setIsWaitingWorkResponse,
+              willRestoreOnSuccess: body.slug === workMetadata.slug,
+            },
+          },
+
           request: {
             method: "put",
             url: `/api/works/${workId}`,
@@ -206,8 +247,15 @@ export function WorkProvider({
         });
       },
 
-      deleteWork: async (workId: string) => {
+      deleteWork: async ({ workId }) => {
         await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setIsWaitingWorkResponse,
+              willRestoreOnSuccess: false,
+            },
+          },
+
           request: {
             method: "delete",
             url: `/api/works/${workId}`,
@@ -227,7 +275,7 @@ export function WorkProvider({
         });
       },
 
-      createWorkField: async (field: WorkField) => {
+      createWorkField: async ({ field }) => {
         const requestbody: WorkFieldCreationReqBody = {
           name: field.fieldName,
           type: "text",
@@ -236,6 +284,12 @@ export function WorkProvider({
         };
 
         return await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setWaitingFieldResponsesWith("new"),
+            },
+          },
+
           request: {
             method: "post",
             url: `/api/works/${workMetadata.workId}/fields`,
@@ -261,7 +315,7 @@ export function WorkProvider({
         });
       },
 
-      updateWorkField: async (field: WorkField) => {
+      updateWorkField: async ({ field }) => {
         const requestBody: WorkFieldCreationReqBody = {
           name: field.fieldName,
           type: field.fieldType,
@@ -270,6 +324,14 @@ export function WorkProvider({
         };
 
         return await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setWaitingFieldResponsesWith(
+                field.workFieldId,
+              ),
+            },
+          },
+
           request: {
             method: "put",
             url: `/api/works/${workMetadata.workId}/fields/${field.workFieldId}`,
@@ -303,12 +365,18 @@ export function WorkProvider({
         });
       },
 
-      updateAllWorkFieldsOrder: async (fields: WorkField[]) => {
+      updateAllWorkFieldsOrder: async ({ fields }) => {
         const requestBody: AllWorkFieldsReorderReqBody = {
           order: fields.map((field) => field.workFieldId),
         };
 
         return await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setIsWaitingWorkResponse,
+            },
+          },
+
           request: {
             method: "post",
             url: `/api/works/${workMetadata.workId}/order`,
@@ -334,8 +402,14 @@ export function WorkProvider({
         });
       },
 
-      deleteWorkField: async (workFieldId: string) => {
+      deleteWorkField: async ({ workFieldId }) => {
         return await sendClientRequest({
+          state: {
+            isWaitingResponse: {
+              setIsWaitingResponse: setWaitingFieldResponsesWith(workFieldId),
+            },
+          },
+
           request: {
             method: "delete",
             url: `/api/works/${workMetadata.workId}/fields/${workFieldId}`,
@@ -367,6 +441,9 @@ export function WorkProvider({
       cycledFieldNames,
       pathname,
       loginName,
+      isWaitingWorkResponse,
+      waitingFieldResponses,
+      setWaitingFieldResponsesWith,
     ],
   );
 
@@ -379,18 +456,29 @@ type WorkContextValue = {
   derivedFieldValues: DerivedFieldValues;
   cycledFieldNames: Set<string>;
 
-  fetchWorkWithFields: (workId?: string) => void | Promise<void>;
+  isWaitingWorkResponse: boolean;
+  isWaitingFieldResponses: boolean;
+  waitingFieldResponses: { data: Set<string> };
+
+  fetchWorkWithFields: (params: WorkIdInParams) => void | Promise<void>;
   updateWork: (
-    workId: string,
-    body: WorkUpsertionReqBody,
+    params: WorkIdInParams & WorkUpsertionInParams,
   ) => void | Promise<void>;
-  deleteWork: (workId: string) => void | Promise<void>;
-  createWorkField: (field: WorkField) => void | Promise<boolean>;
-  updateWorkField: (field: WorkField) => void | Promise<boolean>;
-  updateAllWorkFieldsOrder: (fields: WorkField[]) => void | Promise<boolean>;
-  deleteWorkField: (workFieldId: string) => void | Promise<boolean>;
+  deleteWork: (params: WorkIdInParams) => void | Promise<void>;
+  createWorkField: (params: WorkFieldInParams) => void | Promise<boolean>;
+  updateWorkField: (params: WorkFieldInParams) => void | Promise<boolean>;
+  updateAllWorkFieldsOrder: (
+    params: WorkFieldsInParams,
+  ) => void | Promise<boolean>;
+  deleteWorkField: (params: WorkFieldIdInParams) => void | Promise<boolean>;
 };
 
 type DerivedFieldValues = {
   [fieldName: string]: string;
 };
+
+type WorkIdInParams = { workId?: string };
+type WorkUpsertionInParams = { body: WorkUpsertionReqBody };
+type WorkFieldInParams = { field: WorkField };
+type WorkFieldsInParams = { fields: WorkField[] };
+type WorkFieldIdInParams = { workFieldId: string };

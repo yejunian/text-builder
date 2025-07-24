@@ -26,6 +26,7 @@ import { WorkField } from "@/types/work-field";
 type Props = {
   field: WorkField;
   hasCycle?: boolean | undefined;
+  disabled?: boolean | undefined;
   onSave: (field: WorkField) => void;
   onCancel: (fieldId: string) => void;
   onDelete?: (fieldId: string) => void;
@@ -34,6 +35,7 @@ type Props = {
 export default function FieldEditor({
   field,
   hasCycle = false,
+  disabled = false,
   onSave,
   onCancel,
   onDelete,
@@ -62,6 +64,7 @@ export default function FieldEditor({
               value={editedField.fieldName}
               autoFocus={!field.workFieldId}
               onChange={(e) => handleChange("fieldName", e.target.value)}
+              disabled={disabled}
             />
 
             <Tooltip>
@@ -77,6 +80,7 @@ export default function FieldEditor({
                       window.setTimeout(() => setRefCopiedTimeoutId(-1), 2000),
                     );
                   }}
+                  disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <FileJson
@@ -140,6 +144,7 @@ export default function FieldEditor({
               value={editedField.fieldValue}
               autoFocus={!!field.workFieldId}
               onChange={(e) => handleChange("fieldValue", e.target.value)}
+              disabled={disabled}
             />
 
             <Tooltip>
@@ -154,6 +159,7 @@ export default function FieldEditor({
                       window.setTimeout(() => setRawCopiedTimeoutId(-1), 2000),
                     );
                   }}
+                  disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <Copy
@@ -200,6 +206,7 @@ export default function FieldEditor({
             id="is-private"
             checked={!editedField.isPublic}
             onCheckedChange={(checked) => handleChange("isPublic", !checked)}
+            disabled={disabled}
           />
           <Label htmlFor="is-private">
             편집 화면에서만 표시 (보기 모드에서는 숨김)
@@ -213,6 +220,7 @@ export default function FieldEditor({
             <Button
               variant="outline"
               onClick={() => onDelete(field.workFieldId)}
+              disabled={disabled}
             >
               삭제
             </Button>
@@ -220,10 +228,17 @@ export default function FieldEditor({
         </div>
 
         <div className="space-x-2">
-          <Button variant="outline" onClick={() => onCancel(field.workFieldId)}>
+          <Button
+            variant="outline"
+            onClick={() => onCancel(field.workFieldId)}
+            disabled={disabled}
+          >
             취소
           </Button>
-          <Button onClick={() => onSave(editedField)}>적용</Button>
+
+          <Button onClick={() => onSave(editedField)} disabled={disabled}>
+            적용
+          </Button>
         </div>
       </CardFooter>
     </Card>

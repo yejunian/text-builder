@@ -25,9 +25,10 @@ export async function sendRequest<Req = null, Res = null, ResErr = null>({
       // 2xx 응답 기본 처리
       const success = await response.handler.ok(responseBody as Res);
       return success ?? true;
+    } else {
+      // 대응하는 핸들러 없음
+      return true;
     }
-
-    return true;
   } else {
     if (response.handler && response.handler[apiResponse.status]) {
       // 4xx, 5xx 응답 중 특정 상태 코드 처리 (기본 처리 무시)
@@ -39,9 +40,10 @@ export async function sendRequest<Req = null, Res = null, ResErr = null>({
       // 4xx, 5xx 응답 기본 처리
       const success = await response.handler.notOk(responseBody as ResErr);
       return success ?? false;
+    } else {
+      // 대응하는 핸들러 없음
+      return false;
     }
-
-    return false;
   }
 }
 
