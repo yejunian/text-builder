@@ -22,6 +22,7 @@ export default function SignupForm() {
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,6 +42,13 @@ export default function SignupForm() {
     };
 
     await sendClientRequest({
+      state: {
+        isWaitingResponse: {
+          setIsWaitingResponse,
+          willRestoreOnSuccess: false,
+        },
+      },
+
       request: {
         method: "post",
         url: "/api/users",
@@ -88,6 +96,7 @@ export default function SignupForm() {
             type="text"
             value={loginName}
             onChange={(event) => setLoginName(event.target.value)}
+            disabled={isWaitingResponse}
             autoFocus
             required
           />
@@ -105,6 +114,7 @@ export default function SignupForm() {
             type="text"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
+            disabled={isWaitingResponse}
           />
           <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
             <li>화면에 표시하는 이름(100자 이내).</li>
@@ -124,6 +134,7 @@ export default function SignupForm() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            disabled={isWaitingResponse}
             required
           />
         </div>
@@ -140,11 +151,12 @@ export default function SignupForm() {
             type="password"
             value={passwordConfirm}
             onChange={(event) => setPasswordConfirm(event.target.value)}
+            disabled={isWaitingResponse}
             required
           />
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isWaitingResponse}>
           계정 생성
         </Button>
 

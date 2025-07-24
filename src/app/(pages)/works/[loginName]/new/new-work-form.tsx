@@ -4,6 +4,7 @@ import { FormEvent, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import status from "http-status";
+import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export default function NewWorkForm() {
 
   const [workTitle, setWorkTitle] = useState("");
   const [workSlug, setWorkSlug] = useState("");
+  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,6 +37,13 @@ export default function NewWorkForm() {
     };
 
     await sendClientRequest({
+      state: {
+        isWaitingResponse: {
+          setIsWaitingResponse,
+          willRestoreOnSuccess: false,
+        },
+      },
+
       request: {
         method: "post",
         url: "/api/works",
@@ -50,10 +59,7 @@ export default function NewWorkForm() {
 
           notOk: () => alert("새 텍스트 매크로 생성에 실패했습니다."),
 
-          ok: () => {
-            alert(`새 텍스트 매크로를 생성했습니다.`);
-            router.push(`/works/${loginName}/${workSlug}`);
-          },
+          ok: () => router.push(`/works/${loginName}/${workSlug}`),
         },
       },
     });
@@ -76,6 +82,7 @@ export default function NewWorkForm() {
             type="text"
             value={workTitle}
             onChange={(event) => setWorkTitle(event.target.value)}
+            disabled={isWaitingResponse}
             autoFocus
             required
           />
@@ -96,6 +103,7 @@ export default function NewWorkForm() {
             type="text"
             value={workSlug}
             onChange={(event) => setWorkSlug(event.target.value)}
+            disabled={isWaitingResponse}
             required
           />
           <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs">
@@ -105,7 +113,8 @@ export default function NewWorkForm() {
           </ul>
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isWaitingResponse}>
+          {isWaitingResponse && <LoaderCircle className="animate-spin" />}
           텍스트 매크로 만들기
         </Button>
       </form>
