@@ -1,8 +1,7 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
   FlaskConical,
@@ -22,41 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/contexts/user";
-import { useSendClientRequest } from "@/hooks/use-send-client-request";
+import { useLogout } from "@/hooks/use-logout";
 
 export default function Header() {
-  const router = useRouter();
-
   const { loginName, displayName } = useContext(UserContext);
 
-  const { sendClientRequest } = useSendClientRequest();
-
-  const [isWaitingResponse, setIsWaitingResponse] = useState(false);
-
-  const handleLogout = () =>
-    sendClientRequest({
-      state: {
-        isWaitingResponse: {
-          setIsWaitingResponse,
-          willRestoreOnSuccess: false,
-        },
-      },
-
-      request: {
-        url: "/api/logout",
-      },
-
-      response: {
-        handler: {
-          notOk: () => alert("로그아웃에 실패했습니다."),
-
-          ok: () => {
-            localStorage.removeItem("text-builder--user");
-            router.push("/");
-          },
-        },
-      },
-    });
+  const { isWaitingLogoutResponse, logout } = useLogout();
 
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
@@ -107,9 +77,9 @@ export default function Header() {
 
         {/* 계정 메뉴 */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={isWaitingResponse}>
+          <DropdownMenuTrigger asChild disabled={isWaitingLogoutResponse}>
             <Button variant="ghost" size="sm" className="flex items-center">
-              {isWaitingResponse ? (
+              {isWaitingLogoutResponse && loginName ? (
                 <>
                   <LoaderCircle className="h-4 w-4 animate-spin" />
                   <span className="hidden sm:inline">로그아웃 중...</span>
@@ -160,7 +130,7 @@ export default function Header() {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+            <DropdownMenuItem className="cursor-pointer" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               로그아웃
             </DropdownMenuItem>
