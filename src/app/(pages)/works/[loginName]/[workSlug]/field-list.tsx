@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
+import FieldDisplayEditable from "./field-display-editable";
 import FieldEditor from "./field-editor";
 import { FieldOrderDialog } from "./field-order-dialog";
 import WorkMetadataDialog from "./work-metadata-dialog";
@@ -245,32 +246,48 @@ export default function FieldList({ workId, editable = false }: Props) {
         </div>
       </div>
 
-      {visibleWorkFields.map((field) =>
-        editable && editingFields.data.has(field.workFieldId) ? (
-          <FieldEditor
-            key={field.workFieldId}
-            field={field}
-            hasCycle={cycledFieldNames.has(field.fieldName)}
-            onSave={handleSaveField}
-            onCancel={handleCancelEdit}
-            onDelete={handleDeleteField}
-            disabled={
-              isWaitingWorkResponse ||
-              waitingFieldResponses.data.has(field.workFieldId)
-            }
-          />
-        ) : (
-          <FieldDisplay
-            key={field.workFieldId}
-            field={field}
-            hasCycle={cycledFieldNames.has(field.fieldName)}
-            derivedFieldValue={derivedFieldValues[field.fieldName]}
-            editable={editable}
-            onEdit={() => handleEditField(field.workFieldId)}
-            disabled={isWaitingWorkResponse}
-          />
-        ),
-      )}
+      {visibleWorkFields.map((field) => {
+        if (!editable) {
+          // 보기 페이지
+          return (
+            <FieldDisplay
+              key={field.workFieldId}
+              field={field}
+              hasCycle={cycledFieldNames.has(field.fieldName)}
+              derivedFieldValue={derivedFieldValues[field.fieldName]}
+              disabled={isWaitingWorkResponse}
+            />
+          );
+        } else if (editingFields.data.has(field.workFieldId)) {
+          // 편집 페이지 - 편집 모드
+          return (
+            <FieldEditor
+              key={field.workFieldId}
+              field={field}
+              hasCycle={cycledFieldNames.has(field.fieldName)}
+              onSave={handleSaveField}
+              onCancel={handleCancelEdit}
+              onDelete={handleDeleteField}
+              disabled={
+                isWaitingWorkResponse ||
+                waitingFieldResponses.data.has(field.workFieldId)
+              }
+            />
+          );
+        } else {
+          // 편집 페이지 - 보기 모드
+          return (
+            <FieldDisplayEditable
+              key={field.workFieldId}
+              field={field}
+              hasCycle={cycledFieldNames.has(field.fieldName)}
+              derivedFieldValue={derivedFieldValues[field.fieldName]}
+              onEdit={() => handleEditField(field.workFieldId)}
+              disabled={isWaitingWorkResponse}
+            />
+          );
+        }
+      })}
 
       {visibleWorkFields.length === 0 && (
         <div className="text-muted-foreground space-y-4 py-12 text-center text-balance">

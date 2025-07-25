@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 
-import { Check, Copy, FileJson, LucideLock } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -20,99 +19,42 @@ type Props = {
   field: WorkField;
   hasCycle?: boolean | undefined;
   derivedFieldValue: string;
-  editable: boolean;
   disabled?: boolean | undefined;
-  onEdit: () => void;
 };
 
 export default function FieldDisplay({
   field,
   hasCycle = false,
   derivedFieldValue,
-  editable,
   disabled = false,
-  onEdit,
 }: Props) {
-  const [refCopiedTimeoutId, setRefCopiedTimeoutId] = useState(-1);
-  const [rawCopiedTimeoutId, setRawCopiedTimeoutId] = useState(-1);
-  const [contentCopiedTimeoutId, setContentCopiedTimeoutId] = useState(-1);
+  const [contentCopyTimeoutId, setContentCopyTimeoutId] = useState(-1);
+
+  const handleCopyClickWith =
+    (text: string, timeoutId: number, setTimeoutId: (value: number) => void) =>
+    async () => {
+      await navigator.clipboard.writeText(text);
+      window.clearTimeout(timeoutId);
+      setTimeoutId(window.setTimeout(() => setTimeoutId(-1), 2000));
+    };
+
+  const handleCopyReplacedValueClick = handleCopyClickWith(
+    derivedFieldValue ?? field.fieldValue,
+    contentCopyTimeoutId,
+    setContentCopyTimeoutId,
+  );
 
   return (
-    <Card className="border shadow-sm">
-      <CardContent className="space-y-4">
+    <article>
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="-ml-3 text-lg font-medium"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      `{{${field.fieldName}}}`,
-                    );
-                    window.clearTimeout(refCopiedTimeoutId);
-                    setRefCopiedTimeoutId(
-                      window.setTimeout(() => setRefCopiedTimeoutId(-1), 2000),
-                    );
-                  }}
-                  disabled={disabled}
-                >
-                  <h3 className="text-lg font-medium">{field.fieldName}</h3>
-
-                  <svg viewBox="0 0 24 24">
-                    <FileJson
-                      className={cn(
-                        "transition-opacity",
-                        refCopiedTimeoutId >= 0 ? "opacity-0" : "opacity-100",
-                      )}
-                    />
-                    <Check
-                      strokeWidth={3}
-                      className={cn(
-                        "text-green-600 transition-opacity",
-                        refCopiedTimeoutId >= 0 ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                  </svg>
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                <p>{`이 필드의 참조 복사: {{${field.fieldName}}}`}</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* <Badge variant="outline" className="text-muted-foreground text-xs">
-              {field.fieldType}
-            </Badge> */}
-
-            {!field.isPublic && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <LucideLock size={16} className="text-yellow-700" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>이 필드는 편집 모드에서만 표시합니다.</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+            <h3 className="text-lg font-bold">{field.fieldName}</h3>
 
             {hasCycle && <Badge variant="destructive">잘못된 참조</Badge>}
           </div>
 
-          <div className="flex items-center gap-2">
-            {editable && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onEdit}
-                disabled={disabled}
-              >
-                편집
-              </Button>
-            )}
-          </div>
+          <div className="flex items-center gap-2"></div>
         </div>
 
         <div className="relative">
@@ -131,73 +73,21 @@ export default function FieldDisplay({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(field.fieldValue);
-                    window.clearTimeout(rawCopiedTimeoutId);
-                    setRawCopiedTimeoutId(
-                      window.setTimeout(() => setRawCopiedTimeoutId(-1), 2000),
-                    );
-                  }}
-                  disabled={disabled}
-                >
-                  <svg viewBox="0 0 24 24">
-                    <FileJson
-                      className={cn(
-                        "transition-opacity",
-                        rawCopiedTimeoutId >= 0 ? "opacity-0" : "opacity-100",
-                      )}
-                    />
-                    <Check
-                      strokeWidth={3}
-                      className={cn(
-                        "text-green-600 transition-opacity",
-                        rawCopiedTimeoutId >= 0 ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                  </svg>
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                <p>참조를 치환하지 않은 필드 내용 복사</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      derivedFieldValue ?? field.fieldValue,
-                    );
-                    window.clearTimeout(contentCopiedTimeoutId);
-                    setContentCopiedTimeoutId(
-                      window.setTimeout(
-                        () => setContentCopiedTimeoutId(-1),
-                        2000,
-                      ),
-                    );
-                  }}
+                  onClick={handleCopyReplacedValueClick}
                   disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <Copy
                       className={cn(
                         "transition-opacity",
-                        contentCopiedTimeoutId >= 0
-                          ? "opacity-0"
-                          : "opacity-100",
+                        contentCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
                     <Check
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
-                        contentCopiedTimeoutId >= 0
-                          ? "opacity-100"
-                          : "opacity-0",
+                        contentCopyTimeoutId >= 0 ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </svg>
@@ -210,7 +100,7 @@ export default function FieldDisplay({
             </Tooltip>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 }
