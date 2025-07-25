@@ -111,7 +111,7 @@ export default function FieldDisplayEditable({
             {!field.isPublic && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <LucideLock size={16} className="text-yellow-700" />
+                  <LucideLock size={16} className="text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>이 필드는 편집 모드에서만 표시합니다.</p>
