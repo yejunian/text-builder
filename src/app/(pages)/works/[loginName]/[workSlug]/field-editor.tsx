@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 
-import { Check, Copy, FileJson } from "lucide-react";
+import { FileJson, LucideCheck } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +43,6 @@ export default function FieldEditor({
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
   const [refCopiedTimeoutId, setRefCopiedTimeoutId] = useState(-1);
-  const [rawCopiedTimeoutId, setRawCopiedTimeoutId] = useState(-1);
 
   const handleChange = <T,>(key: keyof WorkField, value: T) => {
     setEditedField({ ...editedField, [key]: value });
@@ -51,16 +51,19 @@ export default function FieldEditor({
   return (
     <Card className="border shadow-sm">
       <CardHeader>
-        <h3 className="text-lg font-medium">편집: {field.fieldName}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold">{field.fieldName}</h3>
+          <Badge variant="outline">편집 중</Badge>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="field-name">필드 이름</Label>
+          <Label htmlFor={`field-name--${field.workFieldId}`}>필드 이름</Label>
 
           <div className="flex gap-2">
             <Input
-              id="field-name"
+              id={`field-name--${field.workFieldId}`}
               value={editedField.fieldName}
               autoFocus={!field.workFieldId}
               onChange={(e) => handleChange("fieldName", e.target.value)}
@@ -89,7 +92,7 @@ export default function FieldEditor({
                         refCopiedTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
-                    <Check
+                    <LucideCheck
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
@@ -107,7 +110,7 @@ export default function FieldEditor({
             </Tooltip>
           </div>
 
-          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs leading-normal">
+          <ul className="text-muted-foreground list-outside list-disc pl-4 text-xs leading-normal">
             <li>
               <span className="bg-muted rounded-xs px-1 py-px">
                 {`{{${editedField.fieldName}}}`}
@@ -118,12 +121,12 @@ export default function FieldEditor({
         </div>
 
         {/* <div className="space-y-2">
-          <Label htmlFor="field-type">타입</Label>
+          <Label htmlFor={`field-type--${field.workFieldId}`}>타입</Label>
           <Select
             value={editedField.fieldType}
             onValueChange={(value) => handleChange("fieldType", value)}
           >
-            <SelectTrigger id="field-type">
+            <SelectTrigger id={`field-type--${field.workFieldId}`}>
               <SelectValue placeholder="타입 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -136,56 +139,17 @@ export default function FieldEditor({
         </div> */}
 
         <div className="space-y-2">
-          <Label htmlFor="field-value">값</Label>
+          <Label htmlFor={`field-value--${field.workFieldId}`}>값</Label>
 
-          <div className="flex gap-2">
-            <Textarea
-              id="field-value"
-              value={editedField.fieldValue}
-              autoFocus={!!field.workFieldId}
-              onChange={(e) => handleChange("fieldValue", e.target.value)}
-              disabled={disabled}
-            />
+          <Textarea
+            id={`field-value--${field.workFieldId}`}
+            value={editedField.fieldValue}
+            autoFocus={!!field.workFieldId}
+            onChange={(e) => handleChange("fieldValue", e.target.value)}
+            disabled={disabled}
+          />
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(field.fieldValue);
-                    window.clearTimeout(rawCopiedTimeoutId);
-                    setRawCopiedTimeoutId(
-                      window.setTimeout(() => setRawCopiedTimeoutId(-1), 2000),
-                    );
-                  }}
-                  disabled={disabled}
-                >
-                  <svg viewBox="0 0 24 24">
-                    <Copy
-                      className={cn(
-                        "transition-opacity",
-                        rawCopiedTimeoutId >= 0 ? "opacity-0" : "opacity-100",
-                      )}
-                    />
-                    <Check
-                      strokeWidth={3}
-                      className={cn(
-                        "text-green-600 transition-opacity",
-                        rawCopiedTimeoutId >= 0 ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                  </svg>
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                <p>참조를 치환하지 않은 필드 내용 복사</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          <ul className="text-muted-foreground ml-1 list-inside list-disc text-xs leading-normal">
+          <ul className="text-muted-foreground list-outside list-disc pl-4 text-xs leading-normal">
             <li>
               <span className="bg-muted rounded-xs px-1 py-px">
                 {"{{필드 이름}}"}
@@ -193,9 +157,11 @@ export default function FieldEditor({
               (으)로 다른 필드의 값을 가져올 수 있습니다.
             </li>
             {hasCycle && (
-              <li className="text-sm font-bold">
-                🚨 오류: 순환 참조가 해소되기 전까지 참조가 정상적으로 치환되지
-                않습니다.
+              <li>
+                <b className="text-sm text-red-600">🚨 오류</b>: 이 필드에는
+                치환할 수 없는 {"{{참조}}"}가 있습니다. 치환할 수 없는 참조는{" "}
+                {"{{참조}}"} 그대로 표시됩니다. 존재하지 않는 필드를 참조했거나
+                순환 참조가 있을 수 있습니다.
               </li>
             )}
           </ul>
@@ -203,12 +169,12 @@ export default function FieldEditor({
 
         <div className="flex items-center space-x-2 *:cursor-pointer">
           <Checkbox
-            id="is-private"
+            id={`is-private--${field.workFieldId}`}
             checked={!editedField.isPublic}
             onCheckedChange={(checked) => handleChange("isPublic", !checked)}
             disabled={disabled}
           />
-          <Label htmlFor="is-private">
+          <Label htmlFor={`is-private--${field.workFieldId}`}>
             편집 화면에서만 표시 (보기 모드에서는 숨김)
           </Label>
         </div>

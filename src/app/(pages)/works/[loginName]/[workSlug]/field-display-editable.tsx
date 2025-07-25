@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-import { Check, Copy, FileJson, LucideLock } from "lucide-react";
+import { FileJson, LucideCheck, LucideCopy, LucideLock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -31,6 +33,7 @@ export default function FieldDisplayEditable({
   disabled = false,
   onEdit,
 }: Props) {
+  const [isReplacedValueMode, setIsReplacedValueMode] = useState(false);
   const [refCopyTimeoutId, setRefCopyTimeoutId] = useState(-1);
   const [rawCopyTimeoutId, setRawCopyTimeoutId] = useState(-1);
   const [contentCopyTimeoutId, setContentCopyTimeoutId] = useState(-1);
@@ -81,7 +84,7 @@ export default function FieldDisplayEditable({
                         refCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
-                    <Check
+                    <LucideCheck
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
@@ -93,7 +96,7 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>{`이 필드의 참조 복사: {{${field.fieldName}}}`}</p>
+                <p>이 필드의 참조 {`{{${field.fieldName}}}`}를 복사합니다.</p>
               </TooltipContent>
             </Tooltip>
 
@@ -112,10 +115,47 @@ export default function FieldDisplayEditable({
               </Tooltip>
             )}
 
-            {hasCycle && <Badge variant="destructive">잘못된 참조</Badge>}
+            {hasCycle && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="destructive">참조 오류</Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    이 필드는 치환할 수 없는 {"{{참조}}"}를 포함하고 있습니다.
+                    <br />
+                    치환할 수 없는 참조는 {"{{참조}}"} 그대로 표시됩니다.
+                    <br />
+                    아래 중 한 가지 이상에 해당할 수 있습니다.
+                  </p>
+                  <ul className="ml-2 list-inside list-disc">
+                    <li>존재하지 않는 필드 참조</li>
+                    <li>순환 참조: A → B → C → A</li>
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Label className="px-3">
+                  <Checkbox
+                    checked={isReplacedValueMode}
+                    onCheckedChange={(checked) =>
+                      setIsReplacedValueMode(!!checked)
+                    }
+                    disabled={disabled}
+                  />
+                  치환 보기
+                </Label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>이 필드의 {"{{참조}}"}를 반영한 내용을 미리 확인합니다.</p>
+              </TooltipContent>
+            </Tooltip>
+
             <Button
               variant="outline"
               size="sm"
@@ -130,7 +170,7 @@ export default function FieldDisplayEditable({
         <div className="relative">
           <Textarea
             readOnly
-            value={derivedFieldValue}
+            value={isReplacedValueMode ? derivedFieldValue : field.fieldValue}
             className="bg-muted/30 resize-none"
             onClick={(event) => {
               (event.target as HTMLTextAreaElement).select();
@@ -153,7 +193,7 @@ export default function FieldDisplayEditable({
                         rawCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
-                    <Check
+                    <LucideCheck
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
@@ -165,7 +205,7 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>참조를 치환하지 않은 필드 내용 복사</p>
+                <p>{"{{참조}}"}를 치환하지 않은, 필드의 원본을 복사합니다.</p>
               </TooltipContent>
             </Tooltip>
 
@@ -178,13 +218,13 @@ export default function FieldDisplayEditable({
                   disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
-                    <Copy
+                    <LucideCopy
                       className={cn(
                         "transition-opacity",
                         contentCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
-                    <Check
+                    <LucideCheck
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
@@ -196,7 +236,7 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>현재 보이는 필드 내용 복사</p>
+                <p>{"{{참조}}"}를 치환한, 필드의 내용을 복사합니다.</p>
               </TooltipContent>
             </Tooltip>
           </div>
