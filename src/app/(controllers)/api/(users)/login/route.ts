@@ -12,7 +12,12 @@ export async function POST(request: NextRequest) {
   const userTokens = userTokenUtils.routeHandler(request);
 
   if (userTokens) {
-    return new Response(null, { status: status.CONFLICT });
+    const response = new NextResponse(null, { status: status.CONFLICT });
+
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
+
+    return response;
   }
 
   let body: unknown;

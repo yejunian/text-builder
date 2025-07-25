@@ -59,9 +59,7 @@ export function WorkListProvider({
           },
         }),
     }),
-    // 무시하는 항목: sendClientRequest
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [works],
+    [works, sendClientRequest],
   );
 
   return <WorkListContext value={contextValue}>{children}</WorkListContext>;

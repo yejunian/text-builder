@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: RequestContext) {
   if (result === "ok") {
     return new Response(null, { status: status.OK });
   } else if (result === "duplicated") {
-    return new Response(null, { status: status.CONFLICT });
+    return new Response(null, { status: status.BAD_REQUEST });
   } else if (result === "not-found") {
     return new Response(null, { status: status.NOT_FOUND });
   } else {

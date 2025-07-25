@@ -431,7 +431,7 @@ export function WorkProvider({
         });
       },
     }),
-    // 무시하는 항목: router, sendClientRequest
+    // 무시하는 항목: router
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       prevWorkId,
@@ -444,6 +444,7 @@ export function WorkProvider({
       isWaitingWorkResponse,
       waitingFieldResponses,
       setWaitingFieldResponsesWith,
+      sendClientRequest,
     ],
   );
 
