@@ -75,7 +75,7 @@ export default function WorkMetadataDialog() {
         <DialogHeader>
           <DialogTitle>매크로 정보 수정</DialogTitle>
           <DialogDescription>
-            아래 내용을 수정 완료하면 페이지를 다시 로드합니다. 이때 편집 내용을
+            텍스트 매크로 ID를 수정하면 페이지를 다시 로드합니다. 편집 내용을
             적용하지 않은 필드의 편집 데이터가 유실됩니다.
           </DialogDescription>
         </DialogHeader>
