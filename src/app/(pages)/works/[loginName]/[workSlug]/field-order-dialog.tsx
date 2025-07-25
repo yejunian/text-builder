@@ -21,11 +21,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripHorizontal, LockIcon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -92,9 +92,11 @@ function SortableFieldCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-medium">{field.fieldName}</h3>
-              <Badge variant="outline" className="text-xs">
+
+              {/* <Badge variant="outline" className="text-xs">
                 {field.fieldType}
-              </Badge>
+              </Badge> */}
+
               {!field.isPublic && (
                 <LockIcon size={16} className="text-muted-foreground" />
               )}
@@ -161,12 +163,8 @@ export function FieldOrderDialog({
     }
   };
 
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(nextOpen) => onOpenChange(nextOpen)}>
       <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>필드 순서 조정</DialogTitle>
@@ -205,13 +203,11 @@ export function FieldOrderDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isWaitingFieldResponses}
-          >
-            취소
-          </Button>
+          <DialogClose asChild>
+            <Button variant="outline" disabled={isWaitingFieldResponses}>
+              취소
+            </Button>
+          </DialogClose>
 
           <Button onClick={handleApply} disabled={isWaitingFieldResponses}>
             적용

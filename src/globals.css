@@ -44,6 +44,11 @@
     "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     sans-serif;
+  /* prettier-ignore */
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New",
+    monospace;
 
   font-family: var(--font-sans);
   font-size-adjust: none;
@@ -127,5 +132,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-mono-sans {
+    font-family: var(--font-mono), var(--font-sans);
   }
 }

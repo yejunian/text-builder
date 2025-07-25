@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, worksTable } from "@/db/schema";
@@ -28,7 +28,8 @@ export async function selectAllWorks(
           isNull(worksTable.deletedAt),
           isNull(usersTable.deletedAt),
         ),
-      );
+      )
+      .orderBy(desc(worksTable.updatedAt));
 
     return selected;
   } catch (error) {
