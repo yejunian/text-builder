@@ -146,6 +146,18 @@ export function WorkProvider({
       }
     }
 
+    for (const fieldName of cycles) {
+      const field = fields[fieldName];
+      result[fieldName] = field.fieldValue;
+
+      for (const priorFieldName of order) {
+        result[fieldName] = result[fieldName].replaceAll(
+          "{{" + priorFieldName + "}}",
+          result[priorFieldName],
+        );
+      }
+    }
+
     return result;
   }, [workFields]);
 

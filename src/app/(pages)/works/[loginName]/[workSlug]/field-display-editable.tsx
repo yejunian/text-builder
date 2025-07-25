@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { FileJson, LucideCheck, LucideCopy, LucideLock } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import Mustached from "@/components/mustached";
+import ReferenceErrorBadge from "@/components/reference-error-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -96,7 +97,10 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>이 필드의 참조 {`{{${field.fieldName}}}`}를 복사합니다.</p>
+                <p>
+                  이 필드의 참조 <Mustached>{field.fieldName}</Mustached>을(를)
+                  복사합니다.
+                </p>
               </TooltipContent>
             </Tooltip>
 
@@ -115,26 +119,7 @@ export default function FieldDisplayEditable({
               </Tooltip>
             )}
 
-            {hasCycle && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="destructive">참조 오류</Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    이 필드는 치환할 수 없는 {"{{참조}}"}를 포함하고 있습니다.
-                    <br />
-                    치환할 수 없는 참조는 {"{{참조}}"} 그대로 표시됩니다.
-                    <br />
-                    아래 중 한 가지 이상에 해당할 수 있습니다.
-                  </p>
-                  <ul className="ml-2 list-inside list-disc">
-                    <li>존재하지 않는 필드 참조</li>
-                    <li>순환 참조: A → B → C → A</li>
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-            )}
+            {hasCycle && <ReferenceErrorBadge />}
           </div>
 
           <div className="flex items-center gap-2">
@@ -152,7 +137,10 @@ export default function FieldDisplayEditable({
                 </Label>
               </TooltipTrigger>
               <TooltipContent>
-                <p>이 필드의 {"{{참조}}"}를 반영한 내용을 미리 확인합니다.</p>
+                <p>
+                  이 필드의 <Mustached>참조</Mustached>를 반영한 내용을 미리
+                  확인합니다.
+                </p>
               </TooltipContent>
             </Tooltip>
 
@@ -171,7 +159,7 @@ export default function FieldDisplayEditable({
           <Textarea
             readOnly
             value={isReplacedValueMode ? derivedFieldValue : field.fieldValue}
-            className="bg-muted/30 resize-none"
+            className="bg-muted/30 font-mono-sans resize-none"
             onClick={(event) => {
               (event.target as HTMLTextAreaElement).select();
             }}
@@ -205,7 +193,10 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>{"{{참조}}"}를 치환하지 않은, 필드의 원본을 복사합니다.</p>
+                <p>
+                  <Mustached>참조</Mustached>를 치환하지 않은, 필드의 원본을
+                  복사합니다.
+                </p>
               </TooltipContent>
             </Tooltip>
 
@@ -236,7 +227,10 @@ export default function FieldDisplayEditable({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>{"{{참조}}"}를 치환한, 필드의 내용을 복사합니다.</p>
+                <p>
+                  <Mustached>참조</Mustached>를 치환한, 필드의 내용을
+                  복사합니다.
+                </p>
               </TooltipContent>
             </Tooltip>
           </div>

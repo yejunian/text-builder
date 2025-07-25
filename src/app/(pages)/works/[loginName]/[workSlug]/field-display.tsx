@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Check, Copy } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import ReferenceErrorBadge from "@/components/reference-error-badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -48,10 +48,10 @@ export default function FieldDisplay({
     <article>
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <h3 className="text-lg font-bold">{field.fieldName}</h3>
 
-            {hasCycle && <Badge variant="destructive">잘못된 참조</Badge>}
+            {hasCycle && <ReferenceErrorBadge />}
           </div>
 
           <div className="flex items-center gap-2"></div>
@@ -61,7 +61,7 @@ export default function FieldDisplay({
           <Textarea
             readOnly
             value={derivedFieldValue}
-            className="bg-muted/30 resize-none"
+            className="bg-muted/30 font-mono-sans resize-none"
             onClick={(event) => {
               (event.target as HTMLTextAreaElement).select();
             }}

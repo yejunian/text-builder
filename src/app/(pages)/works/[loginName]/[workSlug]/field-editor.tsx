@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { FileJson, LucideCheck } from "lucide-react";
 
+import Mustached from "@/components/mustached";
+import ReferenceErrorBadge from "@/components/reference-error-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,11 +44,25 @@ export default function FieldEditor({
   onDelete,
 }: Props) {
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
-  const [refCopiedTimeoutId, setRefCopiedTimeoutId] = useState(-1);
+  const [refCopyTimeoutId, setRefCopyTimeoutId] = useState(-1);
 
   const handleChange = <T,>(key: keyof WorkField, value: T) => {
     setEditedField({ ...editedField, [key]: value });
   };
+
+  const handleCopyClickWith =
+    (text: string, timeoutId: number, setTimeoutId: (value: number) => void) =>
+    async () => {
+      await navigator.clipboard.writeText(text);
+      window.clearTimeout(timeoutId);
+      setTimeoutId(window.setTimeout(() => setTimeoutId(-1), 2000));
+    };
+
+  const handleCopyRefClick = handleCopyClickWith(
+    `{{${field.fieldName}}}`,
+    refCopyTimeoutId,
+    setRefCopyTimeoutId,
+  );
 
   return (
     <Card className="border shadow-sm">
@@ -54,6 +70,7 @@ export default function FieldEditor({
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-bold">{field.fieldName}</h3>
           <Badge variant="outline">편집 중</Badge>
+          {hasCycle && <ReferenceErrorBadge />}
         </div>
       </CardHeader>
 
@@ -74,29 +91,21 @@ export default function FieldEditor({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      `{{${field.fieldName}}}`,
-                    );
-                    window.clearTimeout(refCopiedTimeoutId);
-                    setRefCopiedTimeoutId(
-                      window.setTimeout(() => setRefCopiedTimeoutId(-1), 2000),
-                    );
-                  }}
+                  onClick={handleCopyRefClick}
                   disabled={disabled}
                 >
                   <svg viewBox="0 0 24 24">
                     <FileJson
                       className={cn(
                         "transition-opacity",
-                        refCopiedTimeoutId >= 0 ? "opacity-0" : "opacity-100",
+                        refCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
                       )}
                     />
                     <LucideCheck
                       strokeWidth={3}
                       className={cn(
                         "text-green-600 transition-opacity",
-                        refCopiedTimeoutId >= 0 ? "opacity-100" : "opacity-0",
+                        refCopyTimeoutId >= 0 ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </svg>
@@ -105,16 +114,18 @@ export default function FieldEditor({
               </TooltipTrigger>
 
               <TooltipContent>
-                <p>{`"{{${field.fieldName}}}"를 복사합니다.`}</p>
+                <p>
+                  <Mustached>{field.fieldName}</Mustached>을(를) 복사합니다.
+                </p>
               </TooltipContent>
             </Tooltip>
           </div>
 
           <ul className="text-muted-foreground list-outside list-disc pl-4 text-xs leading-normal">
             <li>
-              <span className="bg-muted rounded-xs px-1 py-px">
-                {`{{${editedField.fieldName}}}`}
-              </span>
+              <Mustached className="bg-muted rounded-xs px-1 py-px">
+                {editedField.fieldName}
+              </Mustached>
               (으)로 이 필드의 값을 다른 필드에 넣을 수 있습니다.
             </li>
           </ul>
@@ -143,6 +154,7 @@ export default function FieldEditor({
 
           <Textarea
             id={`field-value--${field.workFieldId}`}
+            className="font-mono-sans"
             value={editedField.fieldValue}
             autoFocus={!!field.workFieldId}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
@@ -151,19 +163,15 @@ export default function FieldEditor({
 
           <ul className="text-muted-foreground list-outside list-disc pl-4 text-xs leading-normal">
             <li>
-              <span className="bg-muted rounded-xs px-1 py-px">
-                {"{{필드 이름}}"}
-              </span>
+              <Mustached className="bg-muted rounded-xs px-1 py-px">
+                필드 이름
+              </Mustached>
               (으)로 다른 필드의 값을 가져올 수 있습니다.
             </li>
-            {hasCycle && (
-              <li>
-                <b className="text-sm text-red-600">🚨 오류</b>: 이 필드에는
-                치환할 수 없는 {"{{참조}}"}가 있습니다. 치환할 수 없는 참조는{" "}
-                {"{{참조}}"} 그대로 표시됩니다. 존재하지 않는 필드를 참조했거나
-                순환 참조가 있을 수 있습니다.
-              </li>
-            )}
+            <li>
+              치환할 수 없는 참조는 <Mustached>참조</Mustached> 그대로
+              표시됩니다.
+            </li>
           </ul>
         </div>
 
