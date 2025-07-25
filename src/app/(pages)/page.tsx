@@ -9,8 +9,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
-export default function RootPage() {
+export default async function RootPage() {
+  const userTokens = await userTokenUtils.serverComponent();
+
   return (
     <div className="bg-background flex min-h-screen flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 fixed top-0 z-50 w-full border-b backdrop-blur">
@@ -26,16 +29,27 @@ export default function RootPage() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/login">로그인</Link>
-            </Button>
+            {userTokens ? (
+              <Button variant="default" size="sm" asChild>
+                <Link href="/works">
+                  내 매크로 목록 보기
+                  <ArrowRight />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">로그인</Link>
+                </Button>
 
-            <Button variant="default" size="sm" asChild>
-              <Link href="/signup">
-                지금 시작하기
-                <ArrowRight />
-              </Link>
-            </Button>
+                <Button variant="default" size="sm" asChild>
+                  <Link href="/signup">
+                    지금 시작하기
+                    <ArrowRight />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -87,18 +101,32 @@ export default function RootPage() {
             </div>
 
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" asChild className="text-lg">
-                <Link href="/signup">지금 시작하기</Link>
-              </Button>
+              {userTokens ? (
+                <>
+                  <p>이미 로그인하셨군요!</p>
+                  <Button size="lg" asChild className="text-lg">
+                    <Link href="/works">
+                      내 매크로 목록 보기
+                      <ArrowRight />
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button size="lg" asChild className="text-lg">
+                    <Link href="/signup">지금 시작하기</Link>
+                  </Button>
 
-              <Button
-                variant="outline"
-                size="lg"
-                asChild
-                className="border-gray-300 text-lg text-gray-700 hover:bg-gray-50"
-              >
-                <Link href="/login">로그인</Link>
-              </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="border-gray-300 text-lg text-gray-700 hover:bg-gray-50"
+                  >
+                    <Link href="/login">로그인</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </section>
