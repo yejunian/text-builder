@@ -61,7 +61,7 @@ export default function FieldDisplay({
           <Textarea
             readOnly
             value={derivedFieldValue}
-            className="bg-muted/30 font-mono-sans resize-none"
+            className="bg-muted/30 resize-none font-sans"
             onClick={(event) => {
               (event.target as HTMLTextAreaElement).select();
             }}
