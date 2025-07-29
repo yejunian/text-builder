@@ -38,17 +38,20 @@
   --sidebar-ring: oklch(0.707 0.022 261.325);
 
   /* prettier-ignore */
-  --font-sans:
+  --font-sans-list:
     "Pretendard Variable", "Pretendard",
     -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
     "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    sans-serif;
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   /* prettier-ignore */
-  --font-mono:
+  --font-mono-list:
     ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New",
-    monospace;
+    Consolas, "Liberation Mono", "Courier New";
+
+  --font-sans: var(--font-sans-list), sans-serif;
+  --font-mono: var(--font-mono-list), monospace;
+  --font-mono-sans:
+    var(--font-mono-list), var(--font-sans-list), monospace, sans-serif;
 
   font-family: var(--font-sans);
   font-size-adjust: none;
@@ -137,6 +140,6 @@
 
 @layer utilities {
   .font-mono-sans {
-    font-family: var(--font-mono), var(--font-sans);
+    font-family: var(--font-mono-sans);
   }
 }
