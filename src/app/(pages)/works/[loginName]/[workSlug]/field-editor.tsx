@@ -66,11 +66,14 @@ export default function FieldEditor({
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader>
+      <CardHeader className="flex flex-col">
         <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold">{field.fieldName}</h3>
           <Badge variant="outline">편집 중</Badge>
           {hasCycle && <ReferenceErrorBadge />}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold">{field.fieldName}</h3>
         </div>
       </CardHeader>
 
@@ -109,7 +112,7 @@ export default function FieldEditor({
                       )}
                     />
                   </svg>
-                  필드 참조 복사
+                  참조 복사
                 </Button>
               </TooltipTrigger>
 
