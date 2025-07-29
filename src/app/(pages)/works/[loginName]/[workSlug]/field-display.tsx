@@ -49,7 +49,7 @@ export default function FieldDisplay({
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h3 className="text-lg font-bold">{field.fieldName}</h3>
+            <h3 className="text-lg leading-6 font-bold">{field.fieldName}</h3>
 
             {hasCycle && <ReferenceErrorBadge />}
           </div>

@@ -66,44 +66,52 @@ export default function FieldDisplayEditable({
   return (
     <Card>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="-ml-3 text-lg font-bold"
-                  onClick={handleCopyRefClick}
-                  disabled={disabled}
-                >
-                  <h3 className="text-lg font-bold">{field.fieldName}</h3>
+            <h3 className="text-lg leading-6 font-bold">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-mt-2 -mb-1 -ml-3 align-middle"
+                    onClick={handleCopyRefClick}
+                    disabled={disabled}
+                  >
+                    <svg viewBox="0 0 24 24">
+                      <FileJson
+                        className={cn(
+                          "transition-opacity",
+                          refCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
+                        )}
+                      />
+                      <LucideCheck
+                        strokeWidth={3}
+                        className={cn(
+                          "text-green-600 transition-opacity",
+                          refCopyTimeoutId >= 0 ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                    </svg>
+                  </Button>
+                </TooltipTrigger>
 
-                  <svg viewBox="0 0 24 24">
-                    <FileJson
-                      className={cn(
-                        "transition-opacity",
-                        refCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
-                      )}
-                    />
-                    <LucideCheck
-                      strokeWidth={3}
-                      className={cn(
-                        "text-green-600 transition-opacity",
-                        refCopyTimeoutId >= 0 ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                  </svg>
-                </Button>
-              </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    이 필드의 참조{" "}
+                    <Mustached>
+                      {field.fieldName.slice(0, 12)}
+                      {field.fieldName.length > 12 ? "…" : null}
+                    </Mustached>
+                    을(를) 복사합니다.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              {field.fieldName}
+            </h3>
+          </div>
 
-              <TooltipContent>
-                <p>
-                  이 필드의 참조 <Mustached>{field.fieldName}</Mustached>을(를)
-                  복사합니다.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-
+          <div className="flex items-center justify-end gap-2">
             {/* <Badge variant="outline" className="text-muted-foreground text-xs">
               {field.fieldType}
             </Badge> */}
@@ -120,9 +128,7 @@ export default function FieldDisplayEditable({
             )}
 
             {hasCycle && <ReferenceErrorBadge />}
-          </div>
 
-          <div className="flex items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Label className="px-3">
