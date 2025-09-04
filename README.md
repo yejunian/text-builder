@@ -18,11 +18,7 @@
 
 ### 기술 스택
 
-![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=fff)
-![Next.js](https://img.shields.io/badge/Next.js-000?logo=nextdotjs&logoColor=fff) ![React](https://img.shields.io/badge/React-61dafb?logo=react&logoColor=000)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06b6d4?logo=tailwindcss&logoColor=fff) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000?logo=shadcnui&logoColor=fff) ![v0](https://img.shields.io/badge/v0-fff?logo=v0&logoColor=000)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169e1?logo=postgresql&logoColor=fff) ![Drizzle](https://img.shields.io/badge/Drizzle-c5f74f?logo=drizzle&logoColor=000)
-![Vercel](https://img.shields.io/badge/Vercel-000?logo=vercel&logoColor=fff) [![Neon](https://img.shields.io/badge/Neon-00e5bf)](https://neon.tech/)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=fff) <br> ![Next.js](https://img.shields.io/badge/Next.js-000?logo=nextdotjs&logoColor=fff) ![React](https://img.shields.io/badge/React-61dafb?logo=react&logoColor=000) <br> ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06b6d4?logo=tailwindcss&logoColor=fff) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000?logo=shadcnui&logoColor=fff) ![v0](https://img.shields.io/badge/v0-fff?logo=v0&logoColor=000) <br> ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169e1?logo=postgresql&logoColor=fff) ![Drizzle](https://img.shields.io/badge/Drizzle-c5f74f?logo=drizzle&logoColor=000) <br> ![Vercel](https://img.shields.io/badge/Vercel-000?logo=vercel&logoColor=fff) [![Neon](https://img.shields.io/badge/Neon-00e5bf)](https://neon.tech/)
 
 ### 로컬 실행과 선행 세팅
 

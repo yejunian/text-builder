@@ -1,6 +1,7 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { NextRequest, NextResponse } from "next/server";
 
+import { ENV_IS_PRODUCTION, ENV_IS_VERCEL } from "./utils/server/env";
 import { jwtExpToDateValue } from "./utils/server/jwt";
 import { verifyUserTokens } from "./utils/server/user-tokens/verify-user-tokens";
 
@@ -25,7 +26,7 @@ export async function middleware(request: NextRequest) {
   if (result.reissued) {
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
-      secure: true,
+      secure: ENV_IS_VERCEL || ENV_IS_PRODUCTION,
       sameSite: "strict",
       path: "/",
     };

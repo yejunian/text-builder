@@ -292,7 +292,7 @@ export function WorkProvider({
           name: field.fieldName,
           type: "text",
           value: field.fieldValue,
-          isPublic: true,
+          isPublic: field.isPublic,
         };
 
         return await sendClientRequest({

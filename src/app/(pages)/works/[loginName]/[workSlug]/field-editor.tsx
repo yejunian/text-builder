@@ -79,11 +79,10 @@ export default function FieldEditor({
 
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor={`field-name--${field.workFieldId}`}>필드 이름</Label>
+          <Label>필드명</Label>
 
           <div className="flex gap-2">
             <Input
-              id={`field-name--${field.workFieldId}`}
               value={editedField.fieldName}
               autoFocus={!field.workFieldId}
               onChange={(e) => handleChange("fieldName", e.target.value)}
@@ -153,10 +152,9 @@ export default function FieldEditor({
         </div> */}
 
         <div className="space-y-2">
-          <Label htmlFor={`field-value--${field.workFieldId}`}>값</Label>
+          <Label>값</Label>
 
           <Textarea
-            id={`field-value--${field.workFieldId}`}
             className="font-mono-sans"
             value={editedField.fieldValue}
             autoFocus={!!field.workFieldId}

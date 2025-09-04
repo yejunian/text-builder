@@ -5,6 +5,7 @@ import status from "http-status";
 
 import { loginUser } from "@/services/users/login-user";
 import { isUserLoginReqBody, UserLoginResBody } from "@/types/user";
+import { ENV_IS_PRODUCTION, ENV_IS_VERCEL } from "@/utils/server/env";
 import { jwtExpToDateValue } from "@/utils/server/jwt";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     const { tokens } = loginResult;
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
-      secure: true,
+      secure: ENV_IS_VERCEL || ENV_IS_PRODUCTION,
       sameSite: "strict",
       path: "/",
     };
