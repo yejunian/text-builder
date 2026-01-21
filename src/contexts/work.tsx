@@ -223,7 +223,7 @@ export function WorkProvider({
       },
 
       updateWork: async ({ workId, body }) => {
-        sendClientRequest({
+        return await sendClientRequest({
           state: {
             isWaitingResponse: {
               setIsWaitingResponse: setIsWaitingWorkResponse,
@@ -239,8 +239,10 @@ export function WorkProvider({
 
           response: {
             handler: {
-              notOk: () =>
-                alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`),
+              notOk: () => {
+                alert(`"${workMetadata.title}" 매크로를 수정할 수 없습니다.`);
+                return false;
+              },
 
               ok: () => {
                 const nextWorkMetadata = {
@@ -253,6 +255,8 @@ export function WorkProvider({
                 if (body.slug !== workMetadata.slug) {
                   router.replace(`/works/${loginName}/${body.slug}/edit`);
                 }
+
+                return true;
               },
             },
           },
@@ -476,7 +480,7 @@ type WorkContextValue = {
   fetchWorkWithFields: (params: WorkIdInParams) => void | Promise<void>;
   updateWork: (
     params: WorkIdInParams & WorkUpsertionInParams,
-  ) => void | Promise<void>;
+  ) => boolean | void | Promise<boolean | void>;
   deleteWork: (params: WorkIdInParams) => void | Promise<void>;
   createWorkField: (params: WorkFieldInParams) => void | Promise<boolean>;
   updateWorkField: (params: WorkFieldInParams) => void | Promise<boolean>;

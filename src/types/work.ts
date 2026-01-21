@@ -1,4 +1,4 @@
-import { forbiddenNamePattern } from "@/utils/strings";
+import { forbiddenNamePattern, preservedWorkSlugs } from "@/utils/strings";
 
 import { UpsertionTimestamps } from "./crud-timestamp";
 import isObject from "./is-object";
@@ -25,6 +25,7 @@ export function isWorkSlug(str: unknown): boolean {
     typeof str === "string" &&
     str.length > 0 &&
     str.length <= 150 &&
+    !preservedWorkSlugs.has(str) &&
     !forbiddenNamePattern.test(str)
   );
 }

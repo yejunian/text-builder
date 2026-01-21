@@ -1,4 +1,5 @@
 export const forbiddenNamePattern = /[^a-z0-9._-]|^\.|\.$|\.\.|^[._-]+$/;
+export const preservedWorkSlugs = new Set(["new"]);
 
 export function hasControlCharacters(str: string): boolean {
   for (let i = 0; i < str.length; i += 1) {
