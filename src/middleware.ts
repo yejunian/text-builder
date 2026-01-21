@@ -17,8 +17,10 @@ export async function middleware(request: NextRequest) {
     : "no_token";
 
   if (typeof result === "string") {
-    response.cookies.delete("accessToken");
-    response.cookies.delete("refreshToken");
+    if (result !== "no_token") {
+      response.cookies.delete("accessToken");
+      response.cookies.delete("refreshToken");
+    }
 
     return response;
   }
@@ -27,7 +29,7 @@ export async function middleware(request: NextRequest) {
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
       secure: ENV_IS_VERCEL || ENV_IS_PRODUCTION,
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
     };
 
