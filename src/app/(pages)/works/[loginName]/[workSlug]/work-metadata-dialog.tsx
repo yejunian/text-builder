@@ -47,12 +47,19 @@ export default function WorkMetadataDialog() {
     setEditedField({ ...editedField, [key]: value });
   };
 
-  const handleApplyClick = () => {
-    // body.slug가 변경되면 페이지 이동
-    updateWork({
+  const handleApplyClick = async () => {
+    // `body.slug`가 변경되면 페이지가 이동됨.
+    const success = await updateWork({
       workId: workMetadata.workId,
       body: editedField,
     });
+
+    if (!success) {
+      setEditedField({
+        title: workMetadata.title,
+        slug: workMetadata.slug,
+      });
+    }
   };
 
   return (
