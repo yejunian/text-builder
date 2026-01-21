@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const defaultCookie: Partial<ResponseCookie> = {
       httpOnly: true,
       secure: ENV_IS_VERCEL || ENV_IS_PRODUCTION,
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
     };
 
