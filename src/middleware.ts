@@ -5,6 +5,9 @@ import { ENV_IS_PRODUCTION, ENV_IS_VERCEL } from "./utils/server/env";
 import { jwtExpToDateValue } from "./utils/server/jwt";
 import { verifyUserTokens } from "./utils/server/user-tokens/verify-user-tokens";
 
+// TODO: `middleware` 파일명이 지원 종료되므로 `proxy`로 이동.
+// 부작용: `proxy`로 이동 시 런타임이 edge에서 nodejs로 변경됨.
+// 참고: https://nextjs.org/docs/app/guides/upgrading/version-16#middleware-to-proxy
 export async function middleware(request: NextRequest) {
   const requestCookies = request.cookies;
   const response = NextResponse.next();
