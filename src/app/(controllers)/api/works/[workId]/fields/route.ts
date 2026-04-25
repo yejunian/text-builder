@@ -4,6 +4,7 @@ import status from "http-status";
 
 import { createWorkField } from "@/services/work-fields/create-work-fields";
 import { isWorkFieldCreationReqBody } from "@/types/work-field";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 새 작업 필드 생성
@@ -14,20 +15,15 @@ export async function POST(request: NextRequest, { params }: PostContext) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(
+    await request.text(),
+    isWorkFieldCreationReqBody,
+  );
+  if (body instanceof Response) {
+    return body;
   }
-  const body = _body;
 
   const { workId } = await params;
-
-  if (!isWorkFieldCreationReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
 
   const result = await createWorkField({
     parentId: workId,

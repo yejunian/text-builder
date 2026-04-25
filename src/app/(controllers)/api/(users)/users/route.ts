@@ -4,6 +4,7 @@ import status from "http-status";
 
 import { createUser } from "@/services/users/create-user";
 import { isUserCreationReqBody } from "@/types/user";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function POST(request: NextRequest) {
@@ -13,18 +14,9 @@ export async function POST(request: NextRequest) {
     return new Response(null, { status: status.CONFLICT });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
-  const body = _body;
-
-  if (!isUserCreationReqBody(body) || !body.loginName || !body.password) {
-    // 필수 항목 누락
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(await request.text(), isUserCreationReqBody);
+  if (body instanceof Response) {
+    return body;
   }
 
   try {

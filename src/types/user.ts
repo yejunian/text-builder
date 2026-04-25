@@ -44,10 +44,7 @@ export function isDisplayName(str: unknown): boolean {
   return (
     str === null ||
     str === undefined ||
-    (typeof str === "string" &&
-      str.length > 0 &&
-      str.length <= 100 &&
-      !hasControlCharacters(str))
+    (typeof str === "string" && str.length <= 100 && !hasControlCharacters(str))
   );
 }
 
