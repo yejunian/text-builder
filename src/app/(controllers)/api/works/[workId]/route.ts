@@ -6,6 +6,7 @@ import { modifyWork } from "@/services/works/modify-work";
 import { readWork } from "@/services/works/read-work";
 import { removeWork } from "@/services/works/remove-work";
 import { isWorkUpsertionReqBody } from "@/types/work";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 계정이 소유한 작업과 작업이 포함하는 필드 조회
@@ -40,20 +41,12 @@ export async function PUT(request: NextRequest, { params }: RequestContext) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(await request.text(), isWorkUpsertionReqBody);
+  if (body instanceof Response) {
+    return body;
   }
-  const body = _body;
 
   const { workId } = await params;
-
-  if (!isWorkUpsertionReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
 
   const result = await modifyWork({
     ownerId: userTokens.access.payload.sub,

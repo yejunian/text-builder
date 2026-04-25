@@ -5,6 +5,7 @@ import status from "http-status";
 import { modifyWorkField } from "@/services/work-fields/modify-work-field";
 import { removeWorkField } from "@/services/work-fields/remove-work-field";
 import { isWorkFieldCreationReqBody } from "@/types/work-field";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function PUT(request: NextRequest, { params }: PutContext) {
@@ -14,20 +15,15 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(
+    await request.text(),
+    isWorkFieldCreationReqBody,
+  );
+  if (body instanceof Response) {
+    return body;
   }
-  const body = _body;
 
   const { workId, workFieldId } = await params;
-
-  if (!isWorkFieldCreationReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
 
   const result = await modifyWorkField({
     ownerId: userTokens.access.payload.sub,

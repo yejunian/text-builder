@@ -7,6 +7,7 @@ import { loginUser } from "@/services/users/login-user";
 import { isUserLoginReqBody, UserLoginResBody } from "@/types/user";
 import { ENV_IS_PRODUCTION, ENV_IS_VERCEL } from "@/utils/server/env";
 import { jwtExpToDateValue } from "@/utils/server/jwt";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 export async function POST(request: NextRequest) {
@@ -21,17 +22,9 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
-
-  if (!isUserLoginReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(await request.text(), isUserLoginReqBody);
+  if (body instanceof Response) {
+    return body;
   }
 
   try {
