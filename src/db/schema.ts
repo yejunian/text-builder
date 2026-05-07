@@ -46,11 +46,9 @@ export const worksTable = pgTable(
       table.slug,
       table.deletedAt,
     ),
-    unique("works_owner_id_title_unique").on(
-      table.ownerId,
-      table.title,
-      table.deletedAt,
-    ),
+    unique("works_owner_id_title_unique")
+      .on(table.ownerId, table.title, table.deletedAt)
+      .nullsNotDistinct(),
   ],
 );
 
@@ -69,10 +67,8 @@ export const workFieldsTable = pgTable(
     deletedAt: timestamp("deleted_at", { mode: "date" }),
   },
   (table) => [
-    unique("work_fields_parent_id_field_name_unique").on(
-      table.parentId,
-      table.fieldName,
-      table.deletedAt,
-    ),
+    unique("work_fields_parent_id_field_name_unique")
+      .on(table.parentId, table.fieldName, table.deletedAt)
+      .nullsNotDistinct(),
   ],
 );
