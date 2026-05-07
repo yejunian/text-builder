@@ -1,13 +1,15 @@
+import { insertWorkField } from "@/repositories/work-fields/insert-work-field";
+import { DbInsertFailure } from "@/types/server/db-result";
+import { WorkField, WorkFieldCreationReqBody } from "@/types/work-field";
 import {
-  insertWorkField,
-  WorkFieldInsertResult,
-} from "@/repositories/work-fields/insert-work-field";
-import { WorkFieldCreation } from "@/types/work-field";
-import { workFieldTypeNameToId } from "@/types/work-field-type";
+  workFieldTypeIdToName,
+  workFieldTypeNameToId,
+} from "@/types/work-field-type";
+import { upsertionTimestampsFromIso } from "@/utils/date";
 
 export async function createWorkField(
   workFieldCreation: WorkFieldCreation,
-): Promise<WorkFieldInsertResult> {
+): Promise<WorkFieldCreationResult> {
   const {
     parentId,
     // order: displayOrder,
@@ -20,7 +22,7 @@ export async function createWorkField(
   const fieldTypeValue =
     workFieldTypeNameToId[fieldTypeName === "unknown" ? "text" : fieldTypeName];
 
-  return await insertWorkField({
+  const result = await insertWorkField({
     parentId,
     // displayOrder,
     fieldName,
@@ -28,4 +30,19 @@ export async function createWorkField(
     fieldValue,
     isPublic,
   });
+
+  if (typeof result === "string") {
+    return result;
+  }
+
+  return {
+    ...result,
+    fieldType: workFieldTypeIdToName[result.fieldType],
+    ...upsertionTimestampsFromIso(result),
+  };
 }
+
+type WorkFieldCreation = WorkFieldCreationReqBody & {
+  parentId: string;
+};
+type WorkFieldCreationResult = DbInsertFailure | WorkField;

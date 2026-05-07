@@ -36,9 +36,7 @@ export async function POST(request: NextRequest, { params }: PostContext) {
 
   if (result === "duplicated") {
     return new Response(null, { status: status.BAD_REQUEST });
-  }
-
-  if (result === "unknown") {
+  } else if (result === "unknown") {
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
 

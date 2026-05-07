@@ -15,33 +15,24 @@ export function isWorkFieldCreationReqBody(
 ): obj is WorkFieldCreationReqBody {
   if (!isObject(obj)) {
     return false;
-  }
-
-  if (!obj?.name || typeof obj.name !== "string") {
+  } else if (!obj?.name || typeof obj.name !== "string") {
     return false;
-  }
-
-  if (typeof obj?.type !== "string" || !isWorkFieldTypeName(obj.type)) {
+  } else if (typeof obj?.type !== "string" || !isWorkFieldTypeName(obj.type)) {
     return false;
-  }
-
-  if (typeof obj.value !== "string") {
+  } else if (typeof obj.value !== "string") {
     return false;
-  }
-
-  if (typeof obj?.isPublic !== "boolean") {
+  } else if (typeof obj?.isPublic !== "boolean") {
     return false;
+  } else {
+    return true;
   }
-
-  return true;
 }
 
-export type WorkFieldCreationResBody = {
-  workFieldId: string;
-};
-
-export type WorkFieldCreation = WorkFieldCreationReqBody & {
-  parentId: string;
+export type WorkFieldCreationResBody = WorkField & {
+  parent: {
+    workId: string;
+    updatedAt: string;
+  };
 };
 
 export type WorkFieldModification = {
