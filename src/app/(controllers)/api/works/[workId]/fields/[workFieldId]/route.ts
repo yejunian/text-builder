@@ -36,17 +36,20 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
     isPublic: body.isPublic,
   });
 
-  if (result === "ok") {
-    return new Response(null, { status: status.OK });
-  } else if (result === "not-found") {
-    return new Response(null, { status: status.NOT_FOUND });
-  } else if (result === "too-many-updated") {
-    // TODO: 성공은 했고 데이터 변경도 일어났지만 이상한 상황
-    return new Response(null, { status: status.OK });
-  } else {
-    // result === "unknown"
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+  if (typeof result === "string") {
+    if (result === "not-found" || result === "duplicated") {
+      // 변경하려는 대상이 없거나, 변경 결과로 중복이 발생해서 취소됨.
+      return new Response(null, { status: status.NOT_FOUND });
+    } else if (result === "too-many-updated") {
+      // DB 무결성이 깨짐. 2개 이상 변경하려고 해서 취소됨.
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    } else {
+      // result === "unknown"
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    }
   }
+
+  return Response.json(result, { status: status.OK });
 }
 
 export async function DELETE(request: NextRequest, { params }: PutContext) {

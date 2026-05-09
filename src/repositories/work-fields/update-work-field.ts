@@ -10,20 +10,8 @@ export async function updateWorkField(
   workField: WorkFieldUpdate,
 ): Promise<WorkFieldUpdateResult> {
   try {
-    const result = await db.transaction(async (tx) => {
-      const updatedAt = new Date();
-
-      await tx
-        .update(worksTable)
-        .set({ updatedAt })
-        .where(
-          and(
-            eq(worksTable.ownerId, workField.ownerId),
-            eq(worksTable.workId, workField.parentId),
-          ),
-        );
-
-      return await tx
+    return await db.transaction(async (tx) => {
+      const updatedField = await tx
         .update(workFieldsTable)
         .set({
           // displayOrder: workField.order,
@@ -31,7 +19,7 @@ export async function updateWorkField(
           fieldType: workField.type,
           fieldValue: workField.value,
           isPublic: workField.isPublic,
-          updatedAt,
+          updatedAt: new Date(),
         })
         .from(worksTable)
         .innerJoin(
@@ -50,20 +38,46 @@ export async function updateWorkField(
             eq(workFieldsTable.parentId, workField.parentId),
             isNull(workFieldsTable.deletedAt),
           ),
-        );
-    });
+        )
+        .returning({
+          workFieldId: workFieldsTable.workFieldId,
+          displayOrder: workFieldsTable.displayOrder,
+          fieldName: workFieldsTable.fieldName,
+          isPublic: workFieldsTable.isPublic,
+          fieldType: workFieldsTable.fieldType,
+          fieldValue: workFieldsTable.fieldValue,
+          createdAt: workFieldsTable.createdAt,
+          updatedAt: workFieldsTable.updatedAt,
+        });
 
-    if (result.rowCount === 1) {
-      return "ok";
-    } else if (result.rowCount === null) {
-      return "unknown";
-    } else if (result.rowCount === 0) {
-      return "not-found";
-    } else if (result.rowCount > 1) {
-      return "too-many-updated";
-    } else {
-      return "unknown";
-    }
+      if (updatedField.length !== 1) {
+        tx.rollback();
+
+        if (updatedField.length === 0) {
+          return "not-found";
+        } else if (updatedField.length > 1) {
+          return "too-many-updated";
+        } else {
+          return "unknown";
+        }
+      }
+
+      const workUpdateResult = await tx
+        .update(worksTable)
+        .set({ updatedAt: updatedField[0].updatedAt })
+        .where(
+          and(
+            eq(worksTable.ownerId, workField.ownerId),
+            eq(worksTable.workId, workField.parentId),
+          ),
+        );
+
+      if (workUpdateResult.rowCount === 0) {
+        return "not-found";
+      }
+
+      return updatedField[0];
+    });
   } catch (error) {
     if (error instanceof DatabaseError) {
       if (error.code == "23505") {
@@ -80,13 +94,21 @@ type WorkFieldUpdate = Omit<WorkFieldModification, "type"> & {
   type: number;
 };
 
-export type WorkFieldUpdateResult =
-  | WorkFieldUpdateSuccess
-  | WorkFieldUpdateFailure;
+type WorkFieldUpdateResult =
+  | WorkFieldUpdateFailure
+  | Pick<
+      typeof workFieldsTable.$inferSelect,
+      | "workFieldId"
+      | "displayOrder"
+      | "fieldName"
+      | "isPublic"
+      | "fieldType"
+      | "fieldValue"
+      | "createdAt"
+      | "updatedAt"
+    >;
 
-type WorkFieldUpdateSuccess = "ok";
-
-type WorkFieldUpdateFailure =
+export type WorkFieldUpdateFailure =
   | "not-found"
   | "too-many-updated"
   | DbInsertFailure;
