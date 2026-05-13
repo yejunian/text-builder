@@ -6,10 +6,10 @@ import {
 import { readWork } from "../works/read-work";
 
 export async function reorderAllWorkFields(work: ReorderTarget) {
-  const reorderSuccess = await updateAllWorkFieldsOrder(work);
+  const reorderResult = await updateAllWorkFieldsOrder(work);
 
-  if (!reorderSuccess) {
-    return reorderSuccess;
+  if (typeof reorderResult === "string") {
+    return reorderResult;
   }
 
   return await readWork({

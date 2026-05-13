@@ -31,7 +31,15 @@ export async function POST(request: NextRequest, { params }: PostContext) {
     order: body.order,
   });
 
-  if (!result) {
+  if (typeof result === "string") {
+    switch (result) {
+      case "not-found":
+        return new Response(null, { status: status.NOT_FOUND });
+
+      case "wrong-fields":
+        return new Response(null, { status: status.BAD_REQUEST });
+    }
+
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
 
