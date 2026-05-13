@@ -25,17 +25,17 @@ export async function POST(request: NextRequest, { params }: PostContext) {
 
   const { workId } = await params;
 
-  const success = await reorderAllWorkFields({
+  const result = await reorderAllWorkFields({
     ownerId: userTokens.access.payload.sub,
     workId,
     order: body.order,
   });
 
-  if (success) {
-    return new Response(null, { status: status.OK });
-  } else {
+  if (!result) {
     return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
   }
+
+  return Response.json(result, { status: status.OK });
 }
 
 type PostContext = {

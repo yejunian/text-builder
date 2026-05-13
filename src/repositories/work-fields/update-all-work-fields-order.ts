@@ -7,7 +7,7 @@ export async function updateAllWorkFieldsOrder(
   work: ReorderTarget,
 ): Promise<boolean> {
   try {
-    const result = await db.transaction(async (tx) => {
+    return await db.transaction(async (tx) => {
       const timestampResult = await tx
         .update(worksTable)
         .set({ updatedAt: new Date() })
@@ -20,10 +20,11 @@ export async function updateAllWorkFieldsOrder(
         );
 
       if (timestampResult.rowCount !== 1) {
-        return tx.rollback();
+        tx.rollback();
+        return false;
       }
 
-      return await db.execute(sql`
+      const reorderResult = await tx.execute(sql`
         UPDATE ${workFieldsTable}
         SET "${sql.raw(workFieldsTable.displayOrder.name)}" = "t"."new_order"
         FROM (
@@ -38,9 +39,14 @@ export async function updateAllWorkFieldsOrder(
           AND ${workFieldsTable.deletedAt} IS NULL
         ;
       `);
-    });
 
-    return (result.rowCount ?? -1) > 0;
+      if (!reorderResult.rowCount || !(reorderResult.rowCount > 0)) {
+        tx.rollback();
+        return false;
+      }
+
+      return true;
+    });
   } catch (error) {
     console.error(error);
     return false;
