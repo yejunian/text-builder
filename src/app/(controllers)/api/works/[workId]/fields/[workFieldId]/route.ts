@@ -8,6 +8,7 @@ import { isWorkFieldCreationReqBody } from "@/types/work-field";
 import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
+// 작업 필드 수정
 export async function PUT(request: NextRequest, { params }: PutContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -52,6 +53,7 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
   return Response.json(result, { status: status.OK });
 }
 
+// 작업 필드 삭제
 export async function DELETE(request: NextRequest, { params }: PutContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -67,10 +69,12 @@ export async function DELETE(request: NextRequest, { params }: PutContext) {
     workFieldId,
   });
 
-  // TODO: 실패 상황 세분화
-  return result
-    ? new Response(null, { status: status.OK })
-    : new Response(null, { status: status.NOT_FOUND });
+  if (!result) {
+    // TODO: 모든 삭제 실패 상황 포함. 모든 상황에서 404는 아님.
+    return new Response(null, { status: status.NOT_FOUND });
+  }
+
+  return Response.json(result, { status: status.OK });
 }
 
 type PutContext = {

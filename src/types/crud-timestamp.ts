@@ -6,3 +6,5 @@ export type UpsertionTimestamps = {
 export type DeletionTimestamp = {
   deletedAt: string;
 };
+
+export type CrudTimestamp = UpsertionTimestamps & Partial<DeletionTimestamp>;
