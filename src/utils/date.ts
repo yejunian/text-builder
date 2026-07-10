@@ -1,31 +1,50 @@
-import { CrudTimestamp, UpsertionTimestamps } from "@/types/crud-timestamp";
+import { Deleted, UpsertionTimestamps } from "@/types/crud-timestamp";
+import isObject from "@/types/is-object";
 
-// TODO: 호출을 crudTimestampsFromIso로 합치기?
-export function upsertionTimestampsFromIso(
-  sourceObject: UpsertionDates,
-): UpsertionTimestamps {
-  return {
-    createdAt: sourceObject.createdAt.toISOString(),
-    updatedAt: sourceObject.updatedAt.toISOString(),
-  };
-}
+export function getCrudTimestampsAsIso(
+  sourceObject: AliveUpsertionDate,
+): UpsertionTimestamps;
+export function getCrudTimestampsAsIso(
+  sourceObject: DeadUpsertionDate,
+): Deleted<UpsertionTimestamps>;
+export function getCrudTimestampsAsIso(
+  sourceObject: AliveUpsertionDate | DeadUpsertionDate,
+): UpsertionTimestamps | Deleted<UpsertionTimestamps> {
+  const createdAt = sourceObject.createdAt.toISOString();
+  const updatedAt = sourceObject.updatedAt.toISOString();
 
-interface UpsertionDates {
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export function crudTimestampsFromIso(sourceObject: CrudDates): CrudTimestamp {
-  if (sourceObject.deletedAt) {
+  if (sourceObject?.deletedAt instanceof Date) {
     return {
-      ...upsertionTimestampsFromIso(sourceObject),
+      createdAt,
+      updatedAt,
       deletedAt: sourceObject.deletedAt.toISOString(),
     };
   } else {
-    return upsertionTimestampsFromIso(sourceObject);
+    return {
+      createdAt,
+      updatedAt,
+    };
   }
 }
 
-interface CrudDates extends UpsertionDates {
-  deletedAt?: Date | null;
+export function isAliveUpsertionDate(obj: unknown): obj is AliveUpsertionDate {
+  return (
+    isObject(obj) && (obj.deletedAt === null || obj.deletedAt === undefined)
+  );
+}
+
+export function isDeadUpsertionDate(obj: unknown): obj is DeadUpsertionDate {
+  return isObject(obj) && obj?.deletedAt instanceof Date;
+}
+
+interface AliveUpsertionDate {
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: null | undefined;
+}
+
+interface DeadUpsertionDate {
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date;
 }

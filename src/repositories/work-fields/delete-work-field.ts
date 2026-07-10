@@ -2,12 +2,13 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, workFieldsTable, worksTable } from "@/db/schema";
+import { isDeadUpsertionDate } from "@/utils/date";
 
 export async function deleteWorkField(
   workField: WorkFieldDelete,
 ): Promise<WorkFieldDeleteResult> {
   try {
-    const result = await db.transaction(async (tx) => {
+    const deletedField = await db.transaction(async (tx) => {
       const now = new Date();
 
       const workResult = await tx
@@ -27,7 +28,7 @@ export async function deleteWorkField(
         return tx.rollback();
       }
 
-      const deletedField = await tx
+      const deletedFieldRows = await tx
         .update(workFieldsTable)
         .set({
           deletedAt: now,
@@ -63,15 +64,19 @@ export async function deleteWorkField(
           deletedAt: workFieldsTable.deletedAt,
         });
 
-      if (deletedField.length !== 1) {
+      if (deletedFieldRows.length !== 1) {
         // TODO: 롤백 시 catch 절로 넘겨짐. 다행히 실패 사유는 동일하게 리턴됨.
         tx.rollback();
       }
 
-      return deletedField[0];
+      return deletedFieldRows[0];
     });
 
-    return result;
+    if (!isDeadUpsertionDate(deletedField)) {
+      return null;
+    }
+
+    return deletedField;
   } catch (error) {
     console.error(error);
     return null;
@@ -84,16 +89,19 @@ export type WorkFieldDelete = {
   workFieldId: string;
 };
 
-type WorkFieldDeleteResult = null | Pick<
-  typeof workFieldsTable.$inferSelect,
-  | "workFieldId"
-  | "parentId"
-  | "displayOrder"
-  | "fieldName"
-  | "isPublic"
-  | "fieldType"
-  | "fieldValue"
-  | "createdAt"
-  | "updatedAt"
-  | "deletedAt"
->;
+type WorkFieldDeleteResult =
+  | null
+  | (Pick<
+      typeof workFieldsTable.$inferSelect,
+      | "workFieldId"
+      | "parentId"
+      | "displayOrder"
+      | "fieldName"
+      | "isPublic"
+      | "fieldType"
+      | "fieldValue"
+      | "createdAt"
+      | "updatedAt"
+    > & {
+      deletedAt: Date;
+    });

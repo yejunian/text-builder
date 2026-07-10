@@ -4,7 +4,7 @@ import {
 } from "@/repositories/work-fields/delete-work-field";
 import { WorkField } from "@/types/work-field";
 import { workFieldTypeIdToName } from "@/types/work-field-type";
-import { crudTimestampsFromIso } from "@/utils/date";
+import { getCrudTimestampsAsIso } from "@/utils/date";
 
 export async function removeWorkField(
   workFieldRemoval: WorkFieldDelete,
@@ -18,6 +18,6 @@ export async function removeWorkField(
   return {
     ...deletedField,
     fieldType: workFieldTypeIdToName[deletedField.fieldType],
-    ...crudTimestampsFromIso(deletedField),
+    ...getCrudTimestampsAsIso(deletedField),
   };
 }

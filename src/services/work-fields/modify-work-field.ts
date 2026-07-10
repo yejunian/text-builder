@@ -7,7 +7,7 @@ import {
   workFieldTypeIdToName,
   workFieldTypeNameToId,
 } from "@/types/work-field-type";
-import { upsertionTimestampsFromIso } from "@/utils/date";
+import { getCrudTimestampsAsIso } from "@/utils/date";
 
 export async function modifyWorkField(
   workFieldModification: WorkFieldModification,
@@ -24,7 +24,7 @@ export async function modifyWorkField(
   return {
     ...work,
     fieldType: workFieldTypeIdToName[work.fieldType],
-    ...upsertionTimestampsFromIso(work),
+    ...getCrudTimestampsAsIso(work),
   };
 }
 

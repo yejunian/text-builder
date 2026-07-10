@@ -5,7 +5,7 @@ import {
   workFieldTypeIdToName,
   workFieldTypeNameToId,
 } from "@/types/work-field-type";
-import { upsertionTimestampsFromIso } from "@/utils/date";
+import { getCrudTimestampsAsIso } from "@/utils/date";
 
 export async function createWorkField(
   workFieldCreation: WorkFieldCreation,
@@ -38,7 +38,7 @@ export async function createWorkField(
   return {
     ...result,
     fieldType: workFieldTypeIdToName[result.fieldType],
-    ...upsertionTimestampsFromIso(result),
+    ...getCrudTimestampsAsIso(result),
   };
 }
 

@@ -5,7 +5,7 @@ import {
   WorkUpdateValue,
 } from "@/repositories/works/update-work";
 import { WorkMetadata } from "@/types/work";
-import { upsertionTimestampsFromIso } from "@/utils/date";
+import { getCrudTimestampsAsIso } from "@/utils/date";
 
 export async function modifyWork(
   workModification: WorkUpdateValue,
@@ -18,7 +18,7 @@ export async function modifyWork(
 
   return {
     ...work,
-    ...upsertionTimestampsFromIso(work),
+    ...getCrudTimestampsAsIso(work),
   };
 }
 
