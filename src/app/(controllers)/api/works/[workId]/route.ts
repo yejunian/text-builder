@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: RequestContext) {
     workId,
   });
 
-  if (result === false) {
+  if (!result) {
     return new Response(null, { status: status.NOT_FOUND });
   }
 
