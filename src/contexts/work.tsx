@@ -245,6 +245,7 @@ export function WorkProvider({
               },
 
               ok: () => {
+                // TODO: 응답 본문으로 돌려받은 상태로 업데이트
                 const nextWorkMetadata = {
                   ...workMetadata,
                   ...body,
@@ -316,6 +317,7 @@ export function WorkProvider({
             handler: {
               notOk: () => alert("필드 생성에 실패했습니다."),
 
+              // TODO: 응답 타입 확인 필요 (아마 안 맞을 듯)
               ok: ({ workFieldId }: WorkFieldCreationResBody) => {
                 // TODO: 응답으로, 생성된 새 필드 자체를 온전하게 받을 필요가 있음.
                 setWorkFields([

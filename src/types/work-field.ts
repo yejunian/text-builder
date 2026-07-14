@@ -39,15 +39,16 @@ export type WorkFieldModification = {
   ownerId: string;
   parentId: string;
   workFieldId: string;
-  // order: number;
   name: string;
   type: WorkFieldTypeName;
   value: string;
   isPublic: boolean;
 };
 
+// TODO: parentId 확인 필요
 export type WorkField = UpsertionTimestamps & {
   workFieldId: string;
+  // parentId: string;
   displayOrder: number;
   fieldName: string;
   isPublic: boolean;

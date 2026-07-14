@@ -30,7 +30,6 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
     ownerId: userTokens.access.payload.sub,
     parentId: workId,
     workFieldId,
-    // order: body.order,
     name: body.name,
     type: body.type,
     value: body.value,

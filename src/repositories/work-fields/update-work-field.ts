@@ -14,7 +14,6 @@ export async function updateWorkField(
       const updatedField = await tx
         .update(workFieldsTable)
         .set({
-          // displayOrder: workField.order,
           fieldName: workField.name,
           fieldType: workField.type,
           fieldValue: workField.value,
@@ -41,6 +40,7 @@ export async function updateWorkField(
         )
         .returning({
           workFieldId: workFieldsTable.workFieldId,
+          parentId: workFieldsTable.parentId,
           displayOrder: workFieldsTable.displayOrder,
           fieldName: workFieldsTable.fieldName,
           isPublic: workFieldsTable.isPublic,
@@ -51,6 +51,7 @@ export async function updateWorkField(
         });
 
       if (updatedField.length !== 1) {
+        // TODO: catch 절로 넘어가서 실패 사유가 올바르게 리턴되지 않음.
         tx.rollback();
 
         if (updatedField.length === 0) {
@@ -99,6 +100,7 @@ type WorkFieldUpdateResult =
   | Pick<
       typeof workFieldsTable.$inferSelect,
       | "workFieldId"
+      | "parentId"
       | "displayOrder"
       | "fieldName"
       | "isPublic"
