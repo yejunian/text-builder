@@ -8,6 +8,7 @@ import { isWorkFieldCreationReqBody } from "@/types/work-field";
 import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
+// 작업 필드 수정
 export async function PUT(request: NextRequest, { params }: PutContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -29,26 +30,29 @@ export async function PUT(request: NextRequest, { params }: PutContext) {
     ownerId: userTokens.access.payload.sub,
     parentId: workId,
     workFieldId,
-    // order: body.order,
     name: body.name,
     type: body.type,
     value: body.value,
     isPublic: body.isPublic,
   });
 
-  if (result === "ok") {
-    return new Response(null, { status: status.OK });
-  } else if (result === "not-found") {
-    return new Response(null, { status: status.NOT_FOUND });
-  } else if (result === "too-many-updated") {
-    // TODO: 성공은 했고 데이터 변경도 일어났지만 이상한 상황
-    return new Response(null, { status: status.OK });
-  } else {
-    // result === "unknown"
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+  if (typeof result === "string") {
+    if (result === "not-found" || result === "duplicated") {
+      // 변경하려는 대상이 없거나, 변경 결과로 중복이 발생해서 취소됨.
+      return new Response(null, { status: status.NOT_FOUND });
+    } else if (result === "too-many-updated") {
+      // DB 무결성이 깨짐. 2개 이상 변경하려고 해서 취소됨.
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    } else {
+      // result === "unknown"
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    }
   }
+
+  return Response.json(result, { status: status.OK });
 }
 
+// 작업 필드 삭제
 export async function DELETE(request: NextRequest, { params }: PutContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -64,10 +68,12 @@ export async function DELETE(request: NextRequest, { params }: PutContext) {
     workFieldId,
   });
 
-  // TODO: 실패 상황 세분화
-  return result
-    ? new Response(null, { status: status.OK })
-    : new Response(null, { status: status.NOT_FOUND });
+  if (!result) {
+    // TODO: 모든 삭제 실패 상황 포함. 모든 상황에서 404는 아님.
+    return new Response(null, { status: status.NOT_FOUND });
+  }
+
+  return Response.json(result, { status: status.OK });
 }
 
 type PutContext = {

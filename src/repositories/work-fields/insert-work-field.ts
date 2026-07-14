@@ -5,15 +5,14 @@ import { v7 as uuid7 } from "uuid";
 import { db } from "@/db";
 import { workFieldsTable, worksTable } from "@/db/schema";
 import { DbInsertFailure } from "@/types/server/db-result";
-import { WorkFieldCreationResBody } from "@/types/work-field";
 
 export async function insertWorkField(
   workFieldInsert: WorkFieldInsertValue,
 ): Promise<WorkFieldInsertResult> {
   try {
-    const workFieldId = uuid7();
+    return await db.transaction(async (tx) => {
+      const workFieldId = uuid7();
 
-    const result = await db.transaction(async (tx) => {
       const displayOrderNext = await tx
         .select({
           // Drizzle에서 coalesce 함수를 지원하지 않음.
@@ -25,21 +24,45 @@ export async function insertWorkField(
         .from(workFieldsTable)
         .where(eq(workFieldsTable.parentId, workFieldInsert.parentId));
 
-      await tx
+      const insertedField = await tx
+        .insert(workFieldsTable)
+        .values({
+          ...workFieldInsert,
+          workFieldId,
+          displayOrder: displayOrderNext[0].value || 1,
+        })
+        .returning({
+          workFieldId: workFieldsTable.workFieldId,
+          parentId: workFieldsTable.parentId,
+          displayOrder: workFieldsTable.displayOrder,
+          fieldName: workFieldsTable.fieldName,
+          isPublic: workFieldsTable.isPublic,
+          fieldType: workFieldsTable.fieldType,
+          fieldValue: workFieldsTable.fieldValue,
+          createdAt: workFieldsTable.createdAt,
+          updatedAt: workFieldsTable.updatedAt,
+        });
+
+      // INSERT 실행 중 에러가 발생하면 여기에 도달하지 않음.
+      // (트랜잭션 롤백 후 catch 블록 수행)
+      if (insertedField.length !== 1) {
+        tx.rollback();
+        return "unknown";
+      }
+
+      const parentResult = await tx
         .update(worksTable)
-        .set({ updatedAt: new Date() })
+        .set({ updatedAt: insertedField[0].updatedAt })
         .where(eq(worksTable.workId, workFieldInsert.parentId));
 
-      const txResult = await tx.insert(workFieldsTable).values({
-        ...workFieldInsert,
-        workFieldId,
-        displayOrder: displayOrderNext[0].value || 1,
-      });
+      if (parentResult.rowCount !== 1) {
+        // 필드의 부모가 없음.
+        tx.rollback();
+        return "unknown";
+      }
 
-      return txResult;
+      return insertedField[0];
     });
-
-    return result.rowCount === 1 ? { workFieldId } : "unknown";
   } catch (error) {
     if (error instanceof DatabaseError) {
       if (error.code == "23505") {
@@ -62,4 +85,17 @@ export type WorkFieldInsertValue = Pick<
   | "isPublic"
 >;
 
-export type WorkFieldInsertResult = WorkFieldCreationResBody | DbInsertFailure;
+export type WorkFieldInsertResult =
+  | DbInsertFailure
+  | Pick<
+      typeof workFieldsTable.$inferSelect,
+      | "workFieldId"
+      | "parentId"
+      | "displayOrder"
+      | "fieldName"
+      | "isPublic"
+      | "fieldType"
+      | "fieldValue"
+      | "createdAt"
+      | "updatedAt"
+    >;

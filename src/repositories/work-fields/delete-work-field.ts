@@ -2,12 +2,13 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { usersTable, workFieldsTable, worksTable } from "@/db/schema";
+import { isDeadUpsertionDate } from "@/utils/date";
 
 export async function deleteWorkField(
   workField: WorkFieldDelete,
-): Promise<boolean> {
+): Promise<WorkFieldDeleteResult> {
   try {
-    const result = await db.transaction(async (tx) => {
+    const deletedField = await db.transaction(async (tx) => {
       const now = new Date();
 
       const workResult = await tx
@@ -23,10 +24,11 @@ export async function deleteWorkField(
         );
 
       if (workResult.rowCount !== 1) {
+        // TODO: 롤백 시 catch 절로 넘겨짐. 다행히 실패 사유는 동일하게 리턴됨.
         return tx.rollback();
       }
 
-      const workFieldResult = await tx
+      const deletedFieldRows = await tx
         .update(workFieldsTable)
         .set({
           deletedAt: now,
@@ -48,19 +50,36 @@ export async function deleteWorkField(
             eq(workFieldsTable.parentId, workField.parentId),
             isNull(workFieldsTable.deletedAt),
           ),
-        );
+        )
+        .returning({
+          workFieldId: workFieldsTable.workFieldId,
+          parentId: workFieldsTable.parentId,
+          displayOrder: workFieldsTable.displayOrder,
+          fieldName: workFieldsTable.fieldName,
+          isPublic: workFieldsTable.isPublic,
+          fieldType: workFieldsTable.fieldType,
+          fieldValue: workFieldsTable.fieldValue,
+          createdAt: workFieldsTable.createdAt,
+          updatedAt: workFieldsTable.updatedAt,
+          deletedAt: workFieldsTable.deletedAt,
+        });
 
-      if (workFieldResult.rowCount !== 1) {
+      if (deletedFieldRows.length !== 1) {
+        // TODO: 롤백 시 catch 절로 넘겨짐. 다행히 실패 사유는 동일하게 리턴됨.
         tx.rollback();
       }
 
-      return true;
+      return deletedFieldRows[0];
     });
 
-    return result;
+    if (!isDeadUpsertionDate(deletedField)) {
+      return null;
+    }
+
+    return deletedField;
   } catch (error) {
     console.error(error);
-    return false;
+    return null;
   }
 }
 
@@ -69,3 +88,20 @@ export type WorkFieldDelete = {
   parentId: string;
   workFieldId: string;
 };
+
+type WorkFieldDeleteResult =
+  | null
+  | (Pick<
+      typeof workFieldsTable.$inferSelect,
+      | "workFieldId"
+      | "parentId"
+      | "displayOrder"
+      | "fieldName"
+      | "isPublic"
+      | "fieldType"
+      | "fieldValue"
+      | "createdAt"
+      | "updatedAt"
+    > & {
+      deletedAt: Date;
+    });

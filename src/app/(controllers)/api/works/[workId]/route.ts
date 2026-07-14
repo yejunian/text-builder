@@ -34,6 +34,7 @@ export async function GET(request: NextRequest, { params }: RequestContext) {
   return Response.json(result, { status: status.OK });
 }
 
+// 특정 작업의 메타데이터 수정
 export async function PUT(request: NextRequest, { params }: RequestContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -55,17 +56,20 @@ export async function PUT(request: NextRequest, { params }: RequestContext) {
     slug: body.slug,
   });
 
-  if (result === "ok") {
-    return new Response(null, { status: status.OK });
-  } else if (result === "duplicated") {
-    return new Response(null, { status: status.BAD_REQUEST });
-  } else if (result === "not-found") {
-    return new Response(null, { status: status.NOT_FOUND });
-  } else {
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+  if (typeof result === "string") {
+    if (result === "duplicated") {
+      return new Response(null, { status: status.BAD_REQUEST });
+    } else if (result === "not-found") {
+      return new Response(null, { status: status.NOT_FOUND });
+    } else {
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    }
   }
+
+  return Response.json(result, { status: status.OK });
 }
 
+// 특정 작업 삭제
 export async function DELETE(request: NextRequest, { params }: RequestContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -80,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: RequestContext) {
     workId,
   });
 
-  if (result === false) {
+  if (!result) {
     return new Response(null, { status: status.NOT_FOUND });
   }
 
