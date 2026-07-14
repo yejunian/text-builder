@@ -5,6 +5,7 @@ import status from "http-status";
 import { createWork } from "@/services/works/create-work";
 import { readAllWorks } from "@/services/works/read-all-works";
 import { isWorkUpsertionReqBody } from "@/types/work";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 계정이 소유한 작업 목록 조회
@@ -34,17 +35,9 @@ export async function POST(request: NextRequest) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
-  const body = _body;
-
-  if (!isWorkUpsertionReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(await request.text(), isWorkUpsertionReqBody);
+  if (body instanceof Response) {
+    return body;
   }
 
   const result = await createWork({

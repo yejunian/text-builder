@@ -6,6 +6,7 @@ import { modifyWork } from "@/services/works/modify-work";
 import { readWork } from "@/services/works/read-work";
 import { removeWork } from "@/services/works/remove-work";
 import { isWorkUpsertionReqBody } from "@/types/work";
+import { parseRequestBody } from "@/utils/server/parse-request-body";
 import { userTokenUtils } from "@/utils/server/user-tokens/user-token-utils";
 
 // 계정이 소유한 작업과 작업이 포함하는 필드 조회
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest, { params }: RequestContext) {
   return Response.json(result, { status: status.OK });
 }
 
+// 특정 작업의 메타데이터 수정
 export async function PUT(request: NextRequest, { params }: RequestContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -40,20 +42,12 @@ export async function PUT(request: NextRequest, { params }: RequestContext) {
     return new Response(null, { status: status.UNAUTHORIZED });
   }
 
-  let _body: unknown;
-  try {
-    _body = await request.json();
-  } catch (_error) {
-    // JSON이 아닌 요청 본문
-    return new Response(null, { status: status.BAD_REQUEST });
+  const body = parseRequestBody(await request.text(), isWorkUpsertionReqBody);
+  if (body instanceof Response) {
+    return body;
   }
-  const body = _body;
 
   const { workId } = await params;
-
-  if (!isWorkUpsertionReqBody(body)) {
-    return new Response(null, { status: status.BAD_REQUEST });
-  }
 
   const result = await modifyWork({
     ownerId: userTokens.access.payload.sub,
@@ -62,17 +56,20 @@ export async function PUT(request: NextRequest, { params }: RequestContext) {
     slug: body.slug,
   });
 
-  if (result === "ok") {
-    return new Response(null, { status: status.OK });
-  } else if (result === "duplicated") {
-    return new Response(null, { status: status.BAD_REQUEST });
-  } else if (result === "not-found") {
-    return new Response(null, { status: status.NOT_FOUND });
-  } else {
-    return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+  if (typeof result === "string") {
+    if (result === "duplicated") {
+      return new Response(null, { status: status.BAD_REQUEST });
+    } else if (result === "not-found") {
+      return new Response(null, { status: status.NOT_FOUND });
+    } else {
+      return new Response(null, { status: status.INTERNAL_SERVER_ERROR });
+    }
   }
+
+  return Response.json(result, { status: status.OK });
 }
 
+// 특정 작업 삭제
 export async function DELETE(request: NextRequest, { params }: RequestContext) {
   const userTokens = userTokenUtils.routeHandler(request);
 
@@ -87,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: RequestContext) {
     workId,
   });
 
-  if (result === false) {
+  if (!result) {
     return new Response(null, { status: status.NOT_FOUND });
   }
 

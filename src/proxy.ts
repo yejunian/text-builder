@@ -5,7 +5,7 @@ import { ENV_IS_PRODUCTION, ENV_IS_VERCEL } from "./utils/server/env";
 import { jwtExpToDateValue } from "./utils/server/jwt";
 import { verifyUserTokens } from "./utils/server/user-tokens/verify-user-tokens";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const requestCookies = request.cookies;
   const response = NextResponse.next();
 

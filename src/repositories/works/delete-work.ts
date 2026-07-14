@@ -3,8 +3,11 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { usersTable, worksTable } from "@/db/schema";
 import { WorkRead } from "@/types/work";
+import { isDeadUpsertionDate } from "@/utils/date";
 
-export async function deleteWork(workRead: WorkRead): Promise<boolean> {
+export async function deleteWork(
+  workRead: WorkRead,
+): Promise<WorkDeleteResult> {
   try {
     const result = await db
       .update(worksTable)
@@ -20,11 +23,39 @@ export async function deleteWork(workRead: WorkRead): Promise<boolean> {
           isNull(worksTable.deletedAt),
           isNull(usersTable.deletedAt),
         ),
-      );
+      )
+      .returning({
+        workId: worksTable.workId,
+        ownerId: worksTable.ownerId,
+        slug: worksTable.slug,
+        title: worksTable.title,
+        createdAt: worksTable.createdAt,
+        updatedAt: worksTable.updatedAt,
+        deletedAt: worksTable.deletedAt,
+      });
 
-    return result.rowCount === 1;
+    if (result.length !== 1) {
+      return null;
+    }
+
+    const deletedWork = result[0];
+
+    if (!isDeadUpsertionDate(deletedWork)) {
+      return null;
+    }
+
+    return deletedWork;
   } catch (error) {
     console.error(error);
-    return false;
+    return null;
   }
 }
+
+type WorkDeleteResult =
+  | null
+  | (Pick<
+      typeof worksTable.$inferSelect,
+      "workId" | "ownerId" | "slug" | "title" | "createdAt" | "updatedAt"
+    > & {
+      deletedAt: Date;
+    });
