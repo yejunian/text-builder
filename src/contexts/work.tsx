@@ -11,6 +11,10 @@ import {
   WorkFieldCreationReqBody,
   WorkFieldCreationResBody,
 } from "@/types/work-field";
+import {
+  DerivedFieldValues,
+  deriveFieldValues,
+} from "@/utils/derive-field-values";
 import { nop } from "@/utils/nop";
 
 import { UserContext } from "./user";
@@ -59,107 +63,15 @@ export function WorkProvider({
   const [workMetadata, setWorkMetadata] =
     useState<WorkMetadata>(emptyWorkMetadata);
   const [workFields, setWorkFields] = useState<WorkField[]>([]);
-  const [cycledFieldNames, setCycledFieldNames] = useState<Set<string>>(
-    new Set(),
-  );
   const [isWaitingWorkResponse, setIsWaitingWorkResponse] = useState(true);
   const [waitingFieldResponses, setWaitingFieldResponses] = useState({
     data: new Set<string>(),
   });
 
-  const derivedFieldValues = useMemo<DerivedFieldValues>(() => {
-    const fields: { [fieldName: string]: WorkField } = {};
-    const partialOrders: { [fieldName: string]: Set<string> } = {};
-    const inDegrees: { [fieldName: string]: number } = {};
-
-    for (let i = 0; i < workFields.length; i += 1) {
-      const field = workFields[i];
-      const { fieldName, fieldValue } = field;
-      fields[fieldName] = field;
-
-      const fieldDeps = fieldValue
-        .matchAll(/\{\{(.+?)\}\}/g)
-        .map((execArray) => execArray[1]);
-      let fieldInDegree = 0;
-
-      for (const priorFieldName of fieldDeps) {
-        fieldInDegree += 1;
-
-        if (partialOrders[priorFieldName]) {
-          partialOrders[priorFieldName].add(fieldName);
-        } else {
-          partialOrders[priorFieldName] = new Set([fieldName]);
-        }
-      }
-
-      inDegrees[fieldName] = fieldInDegree;
-    }
-
-    const visitedQueue: string[] = [];
-
-    for (const fieldName in inDegrees) {
-      if (inDegrees[fieldName] === 0) {
-        visitedQueue.push(fieldName);
-      }
-    }
-
-    const order: string[] = [];
-
-    while (visitedQueue.length > 0) {
-      // 하나 dequeue해서 order에 push
-      const currentFieldName = visitedQueue.shift()!;
-      order.push(currentFieldName);
-
-      // 방문하지 않은 다음 정점 inDegree 감소하고, 결과가 0이면 그 정점 enqueue
-      if (partialOrders[currentFieldName] instanceof Set) {
-        for (const nextFieldName of partialOrders[currentFieldName]) {
-          inDegrees[nextFieldName] -= 1;
-
-          if (inDegrees[nextFieldName] === 0) {
-            visitedQueue.push(nextFieldName);
-          }
-        }
-      }
-    }
-
-    const cycles: Set<string> = new Set();
-    for (const fieldName in inDegrees) {
-      if (inDegrees[fieldName] > 0) {
-        cycles.add(fieldName);
-      }
-    }
-    setCycledFieldNames(cycles);
-
-    const result: DerivedFieldValues = {};
-
-    for (let i = 0; i < order.length; i += 1) {
-      const fieldName = order[i];
-      const field = fields[fieldName];
-      result[fieldName] = field.fieldValue;
-
-      for (let j = 0; j < i; j += 1) {
-        const priorFieldName = order[j];
-        result[fieldName] = result[fieldName].replaceAll(
-          "{{" + priorFieldName + "}}",
-          result[priorFieldName],
-        );
-      }
-    }
-
-    for (const fieldName of cycles) {
-      const field = fields[fieldName];
-      result[fieldName] = field.fieldValue;
-
-      for (const priorFieldName of order) {
-        result[fieldName] = result[fieldName].replaceAll(
-          "{{" + priorFieldName + "}}",
-          result[priorFieldName],
-        );
-      }
-    }
-
-    return result;
-  }, [workFields]);
+  const { derivedFieldValues, cycledFieldNames } = useMemo(
+    () => deriveFieldValues(workFields),
+    [workFields],
+  );
 
   const setWaitingFieldResponsesWith = (fieldId: string) => {
     return (value: boolean) => {
@@ -490,10 +402,6 @@ type WorkContextValue = {
     params: WorkFieldsInParams,
   ) => void | Promise<boolean>;
   deleteWorkField: (params: WorkFieldIdInParams) => void | Promise<boolean>;
-};
-
-type DerivedFieldValues = {
-  [fieldName: string]: string;
 };
 
 type WorkIdInParams = { workId?: string };
