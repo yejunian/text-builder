@@ -30,7 +30,8 @@ type Props = {
   field: WorkField;
   hasCycle?: boolean | undefined;
   disabled?: boolean | undefined;
-  onSave: (field: WorkField) => void;
+  onEditStart?: (fieldId: string) => void;
+  onSave: (field: WorkField) => Promise<boolean> | boolean;
   onCancel: (fieldId: string) => void;
   onDelete?: (fieldId: string) => void;
 };
@@ -39,14 +40,21 @@ export default function FieldEditor({
   field,
   hasCycle = false,
   disabled = false,
+  onEditStart,
   onSave,
   onCancel,
   onDelete,
 }: Props) {
+  const [isEditing, setIsEditing] = useState(field.workFieldId === "new");
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
   const [refCopyTimeoutId, setRefCopyTimeoutId] = useState(-1);
 
   const handleChange = <T,>(key: keyof WorkField, value: T) => {
+    if (!isEditing && onEditStart) {
+      setIsEditing(true);
+      onEditStart(field.workFieldId);
+    }
+
     setEditedField({ ...editedField, [key]: value });
   };
 
@@ -63,6 +71,20 @@ export default function FieldEditor({
     refCopyTimeoutId,
     setRefCopyTimeoutId,
   );
+
+  const handleSave = async () => {
+    const success = await onSave(editedField);
+
+    if (success) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onCancel(field.workFieldId);
+    setEditedField({ ...field });
+    setIsEditing(false);
+  };
 
   return (
     <Card className="border shadow-sm">
@@ -157,7 +179,6 @@ export default function FieldEditor({
           <Textarea
             className="font-mono-sans"
             value={editedField.fieldValue}
-            autoFocus={!!field.workFieldId}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
             disabled={disabled}
           />
@@ -202,19 +223,21 @@ export default function FieldEditor({
           ) : null}
         </div>
 
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => onCancel(field.workFieldId)}
-            disabled={disabled}
-          >
-            취소
-          </Button>
+        {isEditing && (
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={disabled}
+            >
+              취소
+            </Button>
 
-          <Button onClick={() => onSave(editedField)} disabled={disabled}>
-            적용
-          </Button>
-        </div>
+            <Button onClick={handleSave} disabled={disabled}>
+              저장
+            </Button>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );

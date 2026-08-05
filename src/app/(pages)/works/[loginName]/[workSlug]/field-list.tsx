@@ -33,7 +33,6 @@ import { cn } from "@/lib/utils";
 import { WorkField } from "@/types/work-field";
 
 import FieldDisplay from "./field-display";
-import FieldDisplayEditable from "./field-display-editable";
 import FieldEditor from "./field-editor";
 import { FieldOrderDialog } from "./field-order-dialog";
 import WorkMetadataDialog from "./work-metadata-dialog";
@@ -80,18 +79,21 @@ export default function FieldList({ workId, editable = false }: Props) {
     [workId],
   );
 
-  const handleEditField = (id: string) => {
+  const handleEditFieldStart = (id: string) => {
     editingFields.data.add(id);
     setEditingFields({ ...editingFields });
   };
 
-  const handleSaveField = async (nextField: WorkField) => {
+  const handleSaveField = async (nextField: WorkField): Promise<boolean> => {
     const success = await updateWorkField({ field: nextField });
 
-    if (success) {
-      editingFields.data.delete(nextField.workFieldId);
-      setEditingFields({ ...editingFields });
+    if (!success) {
+      return false;
     }
+
+    editingFields.data.delete(nextField.workFieldId);
+    setEditingFields({ ...editingFields });
+    return true;
   };
 
   const handleCancelEdit = (id: string) => {
@@ -115,9 +117,12 @@ export default function FieldList({ workId, editable = false }: Props) {
   const handleSaveNewField = async (field: WorkField) => {
     const success = await createWorkField({ field });
 
-    if (success) {
-      setIsAddOpen(false);
+    if (!success) {
+      return false;
     }
+
+    setIsAddOpen(false);
+    return true;
   };
 
   const handleAddField = () => {
@@ -247,24 +252,14 @@ export default function FieldList({ workId, editable = false }: Props) {
       </div>
 
       {visibleWorkFields.map((field) => {
-        if (!editable) {
-          // 보기 페이지
-          return (
-            <FieldDisplay
-              key={field.workFieldId}
-              field={field}
-              hasCycle={cycledFieldNames.has(field.fieldName)}
-              derivedFieldValue={derivedFieldValues[field.fieldName]}
-              disabled={isWaitingWorkResponse}
-            />
-          );
-        } else if (editingFields.data.has(field.workFieldId)) {
-          // 편집 페이지 - 편집 모드
+        if (editable) {
+          // 편집 페이지
           return (
             <FieldEditor
               key={field.workFieldId}
               field={field}
               hasCycle={cycledFieldNames.has(field.fieldName)}
+              onEditStart={handleEditFieldStart}
               onSave={handleSaveField}
               onCancel={handleCancelEdit}
               onDelete={handleDeleteField}
@@ -275,14 +270,13 @@ export default function FieldList({ workId, editable = false }: Props) {
             />
           );
         } else {
-          // 편집 페이지 - 보기 모드
+          // 보기 페이지
           return (
-            <FieldDisplayEditable
+            <FieldDisplay
               key={field.workFieldId}
               field={field}
               hasCycle={cycledFieldNames.has(field.fieldName)}
               derivedFieldValue={derivedFieldValues[field.fieldName]}
-              onEdit={() => handleEditField(field.workFieldId)}
               disabled={isWaitingWorkResponse}
             />
           );
