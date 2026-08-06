@@ -6,13 +6,14 @@ export default function ReferenceErrorBadge() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge variant="destructive">참조 오류</Badge>
+        <Badge variant="destructive" className="py-0">
+          참조 오류
+        </Badge>
       </TooltipTrigger>
 
       <TooltipContent>
         <p>
-          이 필드는 치환할 수 없는 <Mustached>참조</Mustached>를 포함하고
-          있습니다.
+          이 필드는 치환할 수 없는 <Mustached>참조</Mustached>를 포함합니다.
           <br />
           치환할 수 없는 참조는 <Mustached>참조</Mustached> 그대로 표시됩니다.
           <br />

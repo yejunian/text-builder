@@ -2,20 +2,18 @@
 
 import { useState } from "react";
 
-import { FileJson, LucideCheck } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 import Mustached from "@/components/mustached";
 import ReferenceErrorBadge from "@/components/reference-error-badge";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -23,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { WorkField } from "@/types/work-field";
 
@@ -30,7 +29,8 @@ type Props = {
   field: WorkField;
   hasCycle?: boolean | undefined;
   disabled?: boolean | undefined;
-  onSave: (field: WorkField) => void;
+  onEditStart?: (fieldId: string) => void;
+  onSave: (field: WorkField) => Promise<boolean> | boolean;
   onCancel: (fieldId: string) => void;
   onDelete?: (fieldId: string) => void;
 };
@@ -39,98 +39,91 @@ export default function FieldEditor({
   field,
   hasCycle = false,
   disabled = false,
+  onEditStart,
   onSave,
   onCancel,
   onDelete,
 }: Props) {
+  const [isEditing, setIsEditing] = useState(field.workFieldId === "new");
   const [editedField, setEditedField] = useState<WorkField>({ ...field });
-  const [refCopyTimeoutId, setRefCopyTimeoutId] = useState(-1);
+  const { copyToClipboard, isCopied } = useCopyToClipboard();
 
   const handleChange = <T,>(key: keyof WorkField, value: T) => {
+    if (!isEditing && onEditStart) {
+      setIsEditing(true);
+      onEditStart(field.workFieldId);
+    }
+
     setEditedField({ ...editedField, [key]: value });
   };
 
-  const handleCopyClickWith =
-    (text: string, timeoutId: number, setTimeoutId: (value: number) => void) =>
-    async () => {
-      await navigator.clipboard.writeText(text);
-      window.clearTimeout(timeoutId);
-      setTimeoutId(window.setTimeout(() => setTimeoutId(-1), 2000));
-    };
+  const handleSave = async () => {
+    const success = await onSave(editedField);
 
-  const handleCopyRefClick = handleCopyClickWith(
-    `{{${field.fieldName}}}`,
-    refCopyTimeoutId,
-    setRefCopyTimeoutId,
-  );
+    if (success) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onCancel(field.workFieldId);
+    setEditedField({ ...field });
+    setIsEditing(false);
+  };
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">편집 중</Badge>
-          {hasCycle && <ReferenceErrorBadge />}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold">{field.fieldName}</h3>
-        </div>
-      </CardHeader>
-
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>필드명</Label>
 
           <div className="flex gap-2">
-            <Input
-              value={editedField.fieldName}
-              autoFocus={!field.workFieldId}
-              onChange={(e) => handleChange("fieldName", e.target.value)}
-              disabled={disabled}
-            />
+            <InputGroup className="h-10">
+              <InputGroupInput
+                className="text-md md:text-md font-bold"
+                value={editedField.fieldName}
+                onChange={(e) => handleChange("fieldName", e.target.value)}
+                disabled={disabled}
+              />
+
+              <InputGroupAddon className="font-mono font-bold">
+                {"{{"}
+              </InputGroupAddon>
+              <InputGroupAddon
+                className="font-mono font-bold"
+                align="inline-end"
+              >
+                {"}}"}
+              </InputGroupAddon>
+            </InputGroup>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
-                  onClick={handleCopyRefClick}
+                  size="icon-lg"
+                  aria-label="Copy"
                   disabled={disabled}
+                  onClick={() =>
+                    copyToClipboard("{{" + editedField.fieldName + "}}")
+                  }
                 >
-                  <svg viewBox="0 0 24 24">
-                    <FileJson
-                      className={cn(
-                        "transition-opacity",
-                        refCopyTimeoutId >= 0 ? "opacity-0" : "opacity-100",
-                      )}
-                    />
-                    <LucideCheck
-                      strokeWidth={3}
-                      className={cn(
-                        "text-green-600 transition-opacity",
-                        refCopyTimeoutId >= 0 ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                  </svg>
-                  참조 복사
+                  {isCopied ? (
+                    <Check className="text-green-600 transition-opacity" />
+                  ) : (
+                    <Copy />
+                  )}
                 </Button>
               </TooltipTrigger>
 
               <TooltipContent>
                 <p>
-                  <Mustached>{field.fieldName}</Mustached>을(를) 복사합니다.
+                  이 필드의 참조 <Mustached>{field.fieldName}</Mustached>
+                  을(를) 복사합니다.
                 </p>
               </TooltipContent>
             </Tooltip>
           </div>
-
-          <ul className="text-muted-foreground list-outside list-disc pl-4 text-xs leading-normal">
-            <li>
-              <Mustached className="bg-muted rounded-xs px-1 py-px">
-                {editedField.fieldName}
-              </Mustached>
-              (으)로 이 필드의 값을 다른 필드에 넣을 수 있습니다.
-            </li>
-          </ul>
         </div>
 
         {/* <div className="space-y-2">
@@ -152,12 +145,11 @@ export default function FieldEditor({
         </div> */}
 
         <div className="space-y-2">
-          <Label>값</Label>
+          <Label>값 {hasCycle && <ReferenceErrorBadge />}</Label>
 
           <Textarea
             className="font-mono-sans"
             value={editedField.fieldValue}
-            autoFocus={!!field.workFieldId}
             onChange={(e) => handleChange("fieldValue", e.target.value)}
             disabled={disabled}
           />
@@ -190,7 +182,7 @@ export default function FieldEditor({
       </CardContent>
 
       <CardFooter className="flex justify-between">
-        <div className="space-x-2">
+        <div className="flex gap-2">
           {onDelete ? (
             <Button
               variant="outline"
@@ -202,17 +194,21 @@ export default function FieldEditor({
           ) : null}
         </div>
 
-        <div className="space-x-2">
+        <div
+          className={cn("space-x-2", {
+            "cursor-not-allowed": disabled || !isEditing,
+          })}
+        >
           <Button
             variant="outline"
-            onClick={() => onCancel(field.workFieldId)}
-            disabled={disabled}
+            onClick={handleCancel}
+            disabled={disabled || !isEditing}
           >
             취소
           </Button>
 
-          <Button onClick={() => onSave(editedField)} disabled={disabled}>
-            적용
+          <Button onClick={handleSave} disabled={disabled || !isEditing}>
+            저장
           </Button>
         </div>
       </CardFooter>

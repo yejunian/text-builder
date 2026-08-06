@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import "@/globals.css";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/contexts/user";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="wrap-break-word break-keep">
-        <UserProvider>{children}</UserProvider>
+        <TooltipProvider>
+          <UserProvider>{children}</UserProvider>
+        </TooltipProvider>
       </body>
     </html>
   );
