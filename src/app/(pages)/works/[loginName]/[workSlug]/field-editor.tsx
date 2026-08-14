@@ -172,7 +172,9 @@ export default function FieldEditor({
           <Checkbox
             id={`is-private--${field.workFieldId}`}
             checked={!editedField.isPublic}
-            onCheckedChange={(checked) => handleChange("isPublic", !checked)}
+            onCheckedChange={(checked: boolean) =>
+              handleChange("isPublic", !checked)
+            }
             disabled={disabled}
           />
           <Label htmlFor={`is-private--${field.workFieldId}`}>
@@ -194,23 +196,21 @@ export default function FieldEditor({
           ) : null}
         </div>
 
-        <div
-          className={cn("space-x-2", {
-            "cursor-not-allowed": disabled || !isEditing,
-          })}
-        >
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={disabled || !isEditing}
-          >
-            취소
-          </Button>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={disabled}
+            >
+              취소
+            </Button>
 
-          <Button onClick={handleSave} disabled={disabled || !isEditing}>
-            저장
-          </Button>
-        </div>
+            <Button onClick={handleSave} disabled={disabled}>
+              저장
+            </Button>
+          </div>
+        ) : null}
       </CardFooter>
     </Card>
   );
